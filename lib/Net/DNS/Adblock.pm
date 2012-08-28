@@ -2,21 +2,16 @@ package Net::DNS::Adblock;
 
 our $VERSION = '0.001';
 
-use strict;
-use warnings;
-
-use Perl6::Junction qw( all any none one );
-use POSIX qw( strftime );
-use Carp;
-
 use Moose;
-use Moose::Util::TypeConstraints;
 
 use Net::DNS;
 use Net::DNS::Nameserver;
 use Net::Address::IP::Local;
 use LWP::Simple qw($ua getstore);
 $ua->agent("");
+
+use POSIX qw( strftime );
+use Carp;
 
 #use Data::Dumper;
 
@@ -70,13 +65,11 @@ sub run {
 	my $localip = Net::Address::IP::Local->public_ipv4;
 
 #--switch dns settings on mac osx, wireless interface
-	system("networksetup -setdnsservers \"PANTECH UML290\" 10.0.2.1");
 #	system("networksetup -setdnsservers \"Wi-Fi\" $localip");
 #	system("networksetup -setsearchdomains \"Wi-Fi\" localhost");
 #--
 
-	$self->log("Nameserver accessible locally @ 10.0.2.1", 1);
-#	$self->log("Nameserver accessible locally @ $localip", 1);
+	$self->log("Nameserver accessible locally @ $localip", 1);
 	$self->nameserver->main_loop;
 };
 
@@ -84,9 +77,9 @@ sub signal_handler {
 	my ( $self, $signal ) = @_;
 
 #--restore dns settings on mac osx, wireless interface
-	system('networksetup -setdnsservers "PANTECH UML290" empty');
 #	system('networksetup -setdnsservers "Wi-Fi" empty');
 #	system('networksetup -setsearchdomains "Wi-Fi" empty');
+#--
 	$self->log("shutting down because of signal $signal");
 
 	exit;
@@ -337,7 +330,6 @@ requests upstream to nameservers defined in /etc/resolv.conf.
 
 =head2 adblock_stack
 
-    my $adfilter = Net::DNS::Dynamic::Adfilter->new(
     my $adfilter = Net::DNS::Adblock->new(
 
         adblock_stack => [

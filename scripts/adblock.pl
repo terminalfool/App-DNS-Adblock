@@ -14,8 +14,7 @@ use Pod::Usage;
 our $VERSION = '0.001';
 
 #my $host 	      = undef;                    # defaults to all (*)
-my $host = '10.0.2.1';
-#my $host = Net::Address::IP::Local->public_ipv4; #set to local ip
+my $host = Net::Address::IP::Local->public_ipv4; #set to local ip
 my $port	      = undef;                   #defaults to 53
 my $debug 	      = 0;
 my $verbose	      = 0;
@@ -35,6 +34,8 @@ GetOptions(
 );
 
 pod2usage(1) if $help;
+
+system("killall named");
 
 fork && exit if $background;
 
