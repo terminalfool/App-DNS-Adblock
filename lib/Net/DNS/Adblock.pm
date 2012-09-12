@@ -1,8 +1,9 @@
 package Net::DNS::Adblock;
 
-our $VERSION = '0.001';
+our $VERSION = '0.002';
 
-use Moose;
+use strict;
+use warnings;
 
 use Net::DNS;
 use Net::DNS::Nameserver;
@@ -15,23 +16,8 @@ use Carp;
 
 #use Data::Dumper;
 
-has adblock_stack   => ( is => 'rw', isa => 'ArrayRef', required => 0 );
-has adfilter        => ( is => 'rw', isa => 'HashRef', required => 0 );
-has blacklist       => ( is => 'rw', isa => 'HashRef', required => 0 );
-has whitelist       => ( is => 'rw', isa => 'HashRef', required => 0 );
-
-has debug	    => ( is => 'ro', isa => 'Int', required => 0, default => 0 );
-has host	    => ( is => 'ro', isa => 'Str', required => 0, default => '*' );
-has port	    => ( is => 'ro', isa => 'Int', required => 0, default => 53 );
-
-has forwarders	    => ( is => 'rw', isa => 'ArrayRef', required => 0, init_arg => 'nameservers' );
-has forwarders_port => ( is => 'ro', isa => 'Int', required => 0, init_arg => 'nameservers_port' );
-
-has nameserver	    => ( is => 'rw', isa => 'Net::DNS::Nameserver', init_arg => undef );
-has resolver	    => ( is => 'rw', isa => 'Net::DNS::Resolver', init_arg => undef );
-
-sub BUILD {
-	my ( $self ) = shift;
+sub new {
+	my ( $class, $self ) = @_;
 
 	$SIG{KILL}	= sub { $self->signal_handler(@_) };
 	$SIG{QUIT}	= sub { $self->signal_handler(@_) };
@@ -39,47 +25,57 @@ sub BUILD {
 	$SIG{INT}	= sub { $self->signal_handler(@_) };
 	$SIG{HUP}	= sub { $self->read_config() };
 
-	$self->read_config();
+	$self->{debug} = 0 unless $self->{debug};
+        $self->{host}  = '*' unless $self->{host};
+        $self->{port} = 53 unless $self->{port};
 
-	my $ns = Net::DNS::Nameserver->new(
-		LocalAddr    => $self->host,
-		LocalPort    => $self->port,
-		ReplyHandler => sub { $self->reply_handler(@_); },
-		Verbose	     => ($self->debug > 1 ? 1 : 0)
-	);
-
-	$self->nameserver( $ns );
-
-	my $res = Net::DNS::Resolver->new(
-		nameservers => [ @{$self->forwarders} ],
-		port	    => $self->forwarders_port || 53,
-		recurse     => 1,
-		debug       => ($self->debug > 2 ? 1 : 0),
-	);
-
-	$self->resolver( $res );
+	bless $self, $class;
+	return $self;
 }
 
 sub run {
 	my ( $self ) = shift;
+
+	$self->read_config();
+
+	my $ns = Net::DNS::Nameserver->new(
+		LocalAddr    => $self->{host},
+		LocalPort    => $self->{port},
+		ReplyHandler => sub { $self->reply_handler(@_); },
+		Verbose	     => ($self->{debug} > 1 ? 1 : 0)
+	);
+
+	$self->{nameserver} = $ns;
+
+	my $res = Net::DNS::Resolver->new(
+		nameservers => [ @{ $self->{forwarders} } ],
+		port	    => $self->{forwarders_port} || 53,
+		recurse     => 1,
+		debug       => ($self->{debug} > 2 ? 1 : 0),
+	);
+
+	$self->{resolver} = $res;
+
 	my $localip = Net::Address::IP::Local->public_ipv4;
 
 #--switch dns settings on mac osx, wireless interface
-#	system("networksetup -setdnsservers \"Wi-Fi\" $localip");
-#	system("networksetup -setsearchdomains \"Wi-Fi\" localhost");
-#--
+        if ($^O	=~ /darwin/i) {
+	        system("networksetup -setdnsservers \"Wi-Fi\" $localip");
+	        system("networksetup -setsearchdomains \"Wi-Fi\" localhost");
+	}
 
 	$self->log("Nameserver accessible locally @ $localip", 1);
-	$self->nameserver->main_loop;
+	$self->{nameserver}->main_loop;
 };
 
 sub signal_handler {
 	my ( $self, $signal ) = @_;
 
 #--restore dns settings on mac osx, wireless interface
-#	system('networksetup -setdnsservers "Wi-Fi" empty');
-#	system('networksetup -setsearchdomains "Wi-Fi" empty');
-#--
+        if ($^O	=~ /darwin/i) {
+        	system('networksetup -setdnsservers "Wi-Fi" empty');
+	        system('networksetup -setsearchdomains "Wi-Fi" empty');
+	}
 	$self->log("shutting down because of signal $signal");
 
 	exit;
@@ -90,7 +86,7 @@ sub reply_handler {
 
 	my ($rcode, @ans, @auth, @add);
 
- 	if ($self->adfilter && ($qtype eq 'AAAA' || $qtype eq 'A' || $qtype eq 'PTR')) {
+ 	if ($self->{adfilter} && ($qtype eq 'AAAA' || $qtype eq 'A' || $qtype eq 'PTR')) {
     
  		if (my $ip = $self->query_adfilter( $qname, $qtype )) {
 
@@ -107,7 +103,7 @@ sub reply_handler {
  		}
  	}
 
-	my $answer = $self->resolver->send($qname, $qtype, $qclass);
+	my $answer = $self->{resolver}->send($qname, $qtype, $qclass);
 
 	if ($answer) {
 
@@ -131,29 +127,29 @@ sub reply_handler {
 
 sub log {
 	my ( $self, $msg, $force_flag ) = @_;
-	print "[" . strftime('%Y-%m-%d %H:%M:%S', localtime(time)) . "] " . $msg . "\n" if $self->debug || $force_flag;
+	print "[" . strftime('%Y-%m-%d %H:%M:%S', localtime(time)) . "] " . $msg . "\n" if $self->{debug} || $force_flag;
 }
 
 sub read_config {
 	my ( $self ) = shift;
         my $cache = ();
 
-	$self->forwarders([ $self->parse_resolv_conf() ]);		              # /etc/resolv.conf
+	$self->{forwarders} = ([ $self->parse_resolv_conf() ]);		              # /etc/resolv.conf
 
-        if ($self->adblock_stack) {
-        	for ( @{ $self->adblock_stack } ) {
+        if ($self->{adblock_stack}) {
+        	for ( @{ $self->{adblock_stack} } ) {
  	                $cache = { $self->load_adblock_filter($_) };                  # adblock plus hosts
-                        %{ $self->{adfilter} } = $self->adfilter ? ( %{ $self->{adfilter} }, %{ $cache } ) 
+                        %{ $self->{adfilter} } = $self->{adfilter} ? ( %{ $self->{adfilter} }, %{ $cache } ) 
                                          : %{ $cache };
 	        }
 	}
-        if ($self->blacklist) {
- 	        $cache = { $self->parse_single_col_hosts($self->blacklist->{path}) }; # local, custom hosts
-                %{ $self->{adfilter} } = $self->adfilter ? ( %{ $self->{adfilter} }, %{ $cache } ) 
+        if ($self->{blacklist}) {
+ 	        $cache = { $self->parse_single_col_hosts($self->{blacklist}->{path}) }; # local, custom hosts
+                %{ $self->{adfilter} } = $self->{adfilter} ? ( %{ $self->{adfilter} }, %{ $cache } ) 
                                          : %{ $cache };
  	}
-        if ($self->whitelist) {
- 	        $cache = { $self->parse_single_col_hosts($self->whitelist->{path}) }; # remove entries
+        if ($self->{whitelist}) {
+ 	        $cache = { $self->parse_single_col_hosts($self->{whitelist}->{path}) }; # remove entries
                 for ( keys %{ $cache } ) { delete ( $self->{adfilter}->{$_} ) };
  	}
 
@@ -177,9 +173,9 @@ sub search_ip_in_adfilter {
 	$trim =~ s/^www\.//i;
 	$sld =~ s/^.*\.(\w+\.\w+)$/$1/;
 
-	return '::1' if ( exists $self->adfilter->{$hostname} ||
-			  exists $self->adfilter->{$trim} ||
-			  exists $self->adfilter->{$sld} );
+	return '::1' if ( exists $self->{adfilter}->{$hostname} ||
+			  exists $self->{adfilter}->{$trim} ||
+			  exists $self->{adfilter}->{$sld} );
         return;
 }
 
@@ -201,7 +197,7 @@ sub get_in_addr_arpa {
 sub parse_resolv_conf {
 	my ( $self ) = shift;
 
-	return @{$self->forwarders} if $self->forwarders;
+	return @{$self->{forwarders}} if $self->{forwarders};
 
 	$self->log('reading /etc/resolv.conf file');
 
@@ -286,8 +282,6 @@ sub dump_adfilter {
 	print OUT $str;
 	close OUT;
 }
-
-__PACKAGE__->meta->make_immutable;
 
 1;
 

@@ -5,13 +5,13 @@ use lib "../lib/";
 use strict;
 use warnings;
 
-use Net::DNS::Adblock 0.001;
+use Net::DNS::Adblock 0.002;
 use Net::Address::IP::Local;
 
 use Getopt::Long;
 use Pod::Usage;
 
-our $VERSION = '0.001';
+our $VERSION = '0.002';
 
 #my $host 	      = undef;                    # defaults to all (*)
 my $host = Net::Address::IP::Local->public_ipv4; #set to local ip
