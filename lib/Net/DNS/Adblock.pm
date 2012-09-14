@@ -1,7 +1,5 @@
 package Net::DNS::Adblock;
 
-our $VERSION = '0.002';
-
 use strict;
 use warnings;
 
@@ -19,6 +17,13 @@ use Carp;
 sub new {
 	my ( $class, $self ) = @_;
 
+	bless $self, $class;
+	return $self;
+}
+
+sub run {
+	my ( $self ) = shift;
+
 	$SIG{KILL}	= sub { $self->signal_handler(@_) };
 	$SIG{QUIT}	= sub { $self->signal_handler(@_) };
 	$SIG{TERM}	= sub { $self->signal_handler(@_) };
@@ -26,15 +31,8 @@ sub new {
 	$SIG{HUP}	= sub { $self->read_config() };
 
 	$self->{debug} = 0 unless $self->{debug};
-        $self->{host}  = '*' unless $self->{host};
+        $self->{host} = '*' unless $self->{host};
         $self->{port} = 53 unless $self->{port};
-
-	bless $self, $class;
-	return $self;
-}
-
-sub run {
-	my ( $self ) = shift;
 
 	$self->read_config();
 
@@ -288,10 +286,6 @@ sub dump_adfilter {
 =head1 NAME
 
 Net::DNS::Adblock - A DNS based implementation of Adblock Plus
-
-=head1 VERSION
-
-version 0.001
 
 =head1 DESCRIPTION
 

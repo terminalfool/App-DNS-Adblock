@@ -1,0 +1,10 @@
+Revision history for Perl module Net::DNS::Adblock
+
+{{$NEXT}}
+    - preparations for release
+
+0.002 Wed Sep 12 2012
+    - mooseless
+
+0.001 Tue Aug 28 2012
+    - base commit

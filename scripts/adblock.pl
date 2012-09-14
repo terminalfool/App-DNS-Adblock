@@ -5,13 +5,11 @@ use lib "../lib/";
 use strict;
 use warnings;
 
-use Net::DNS::Adblock 0.002;
+use Net::DNS::Adblock;
 use Net::Address::IP::Local;
 
 use Getopt::Long;
 use Pod::Usage;
-
-our $VERSION = '0.002';
 
 #my $host 	      = undef;                    # defaults to all (*)
 my $host = Net::Address::IP::Local->public_ipv4; #set to local ip
@@ -60,7 +58,7 @@ $args->{adblock_stack}    = [
 			    ];
 $args->{blacklist}	  = { path => '/var/named/blacklist' };
 
-$args->{whitelist}	  = { path => '/var/named/whitelist' };
+#$args->{whitelist}	  = { path => '/var/named/whitelist' };
 
 Net::DNS::Adblock->new( $args )->run();
 
