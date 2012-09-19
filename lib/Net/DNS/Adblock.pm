@@ -16,19 +16,7 @@ use Carp;
 
 sub new {
 	my ( $class, $self ) = @_;
-
 	bless $self, $class;
-	return $self;
-}
-
-sub run {
-	my ( $self ) = shift;
-
-	$SIG{KILL}	= sub { $self->signal_handler(@_) };
-	$SIG{QUIT}	= sub { $self->signal_handler(@_) };
-	$SIG{TERM}	= sub { $self->signal_handler(@_) };
-	$SIG{INT}	= sub { $self->signal_handler(@_) };
-	$SIG{HUP}	= sub { $self->read_config() };
 
 	$self->{debug} = 0 unless $self->{debug};
         $self->{host} = '*' unless $self->{host};
@@ -53,6 +41,18 @@ sub run {
 	);
 
 	$self->{resolver} = $res;
+
+	return $self;
+}
+
+sub run {
+	my ( $self ) = shift;
+
+	$SIG{KILL} = sub { $self->signal_handler(@_) };
+	$SIG{QUIT} = sub { $self->signal_handler(@_) };
+	$SIG{TERM} = sub { $self->signal_handler(@_) };
+	$SIG{INT}  = sub { $self->signal_handler(@_) };
+	$SIG{HUP}  = sub { $self->read_config() };
 
 	my $localip = Net::Address::IP::Local->public_ipv4;
 
@@ -89,7 +89,7 @@ sub reply_handler {
  		if (my $ip = $self->query_adfilter( $qname, $qtype )) {
 
                  	$self->log("received query from $peerhost: qtype '$qtype', qname '$qname'");
- 			$self->log("[local host listings] resolved $qname to $ip NOERROR");
+ 			$self->log("[local] resolved $qname to $ip NOERROR");
 
  			my ($ttl, $rdata) = ( 300, $ip );
         
@@ -275,7 +275,7 @@ sub parse_single_col_hosts {
 sub dump_adfilter {
 	my $self = shift;
 
-	my $str = Dumper(\%{ $self->adfilter });
+	my $str = Dumper(\%{ $self->{adfilter} });
 	open(OUT, ">/var/named/adfilter_dumpfile") or die "cant open dump file: $!";
 	print OUT $str;
 	close OUT;
@@ -307,7 +307,7 @@ ip is echoed to stdout.
 
 =head1 SYNOPSIS
 
-    my $adfilter = Net::DNS::Adblock->new();
+    my $adfilter = Net::DNS::Adblock->new( { } );
 
     $adfilter->run();
 
@@ -318,7 +318,7 @@ requests upstream to nameservers defined in /etc/resolv.conf.
 
 =head2 adblock_stack
 
-    my $adfilter = Net::DNS::Adblock->new(
+    my $adfilter = Net::DNS::Adblock->new( {
 
         adblock_stack => [
             {
@@ -333,7 +333,7 @@ requests upstream to nameservers defined in /etc/resolv.conf.
             refresh => 5,
             },
         ],
-    );
+    } );
 
 The adblock_stack arrayref encloses one or more hashrefs composed of three 
 parameters: a url that returns a list of ad hosts in adblock plus format; 
@@ -351,12 +351,12 @@ encoded links directly.
 
 =head2 blacklist
 
-    my $adfilter = Net::DNS::Adblock->new(
+    my $adfilter = Net::DNS::Adblock->new( {
 
         blacklist => {
             path => '/var/named/blacklist',  #path to secondary hosts
         },
-    );
+    } );
 
 The blacklist hashref contains only a path string that defines where the module will 
 access a local list of ad hosts to nullify. As mentioned above, a single column is the 
@@ -371,12 +371,12 @@ only acceptable format:
 
 =head2 whitelist
 
-    my $adfilter = Net::DNS::Adblock->new(
+    my $adfilter = Net::DNS::Adblock->new( {
 
         whitelist => {
             path => '/var/named/whitelist',  #path to whitelist
         },
-    );
+    } );
 
 The whitelist hashref, like the blacklist hashref, contains only a path parameter 
 to a single column list of hosts. These hosts will be removed from the filter.

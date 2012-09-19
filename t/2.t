@@ -24,7 +24,7 @@ unless ($pid) {
 
 my $res = Net::DNS::Resolver->new(
 	nameservers => [ $host ],
-	port		=> $port,
+	port        => $port,
 	recurse     => 1,
 	debug       => 0,
 );
