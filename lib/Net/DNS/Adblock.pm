@@ -5,7 +5,8 @@ use warnings;
 
 use Net::DNS;
 use Net::DNS::Nameserver;
-use Net::Address::IP::Local;
+use Sys::Hostname;
+use Socket;
 use LWP::Simple qw($ua getstore);
 $ua->agent("");
 
@@ -54,7 +55,7 @@ sub run {
 	$SIG{INT}  = sub { $self->signal_handler(@_) };
 	$SIG{HUP}  = sub { $self->read_config() };
 
-	my $localip = Net::Address::IP::Local->public_ipv4;
+        my($localip) = inet_ntoa( (gethostbyname(hostname()))[4] ); #set to local ip
 
 #--switch dns settings on mac osx, wireless interface
         if ($^O	=~ /darwin/i) {

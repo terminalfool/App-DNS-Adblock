@@ -6,14 +6,14 @@ use strict;
 use warnings;
 
 use Net::DNS::Adblock;
-use Net::Address::IP::Local;
-
+use Sys::Hostname;
+use Socket;
 use Getopt::Long;
 use Pod::Usage;
 
-#my $host 	      = undef;                    # defaults to all (*)
-my $host = Net::Address::IP::Local->public_ipv4; #set to local ip
-my $port	      = undef;                   #defaults to 53
+#my $host 	      = undef;                           # defaults to all (*)
+my($host) = inet_ntoa( (gethostbyname(hostname()))[4] ); #set to local ip
+my $port	      = undef;                           #defaults to 53
 my $debug 	      = 0;
 my $verbose	      = 0;
 my $help	      = 0;
