@@ -4,7 +4,7 @@ use Test;
 BEGIN { plan tests => 1 };
 
 use lib "../lib/";
-use Net::DNS::Adblock;
+use App::DNS::Adblock;
 use Net::DNS::Resolver;
 
 $SIG{CHLD} = 'IGNORE';
@@ -12,7 +12,7 @@ $SIG{CHLD} = 'IGNORE';
 my $host = "127.0.0.1";
 my $port = int(rand(9999)) + 10000;
 
-my $adfilter = Net::DNS::Adblock->new( { host => $host, port => $port } );
+my $adfilter = App::DNS::Adblock->new( { host => $host, port => $port } );
 
 my $pid = fork();
 

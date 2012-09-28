@@ -5,15 +5,12 @@ use lib "../lib/";
 use strict;
 use warnings;
 
-use Net::DNS::Adblock;
-use Sys::Hostname;
-use Socket;
+use App::DNS::Adblock;
 use Getopt::Long;
 use Pod::Usage;
 
-#my $host 	      = undef;                           # defaults to all (*)
-my($host) = inet_ntoa( (gethostbyname(hostname()))[4] ); #set to local ip
-my $port	      = undef;                           #defaults to 53
+my $host 	      = undef;         # defaults to (local ip)
+my $port	      = undef;         # defaults to 53
 my $debug 	      = 0;
 my $verbose	      = 0;
 my $help	      = 0;
@@ -60,11 +57,11 @@ $args->{blacklist}	  = { path => '/var/named/blacklist' };
 
 #$args->{whitelist}	  = { path => '/var/named/whitelist' };
 
-Net::DNS::Adblock->new( $args )->run();
+App::DNS::Adblock->new( $args )->run();
 
 =head1 NAME
 
-adfilter.pl - Sample script using Net::DNS::Adblock
+adfilter.pl - Sample script using App::DNS::Adblock
 
 =head1 SYNOPSIS
 
@@ -98,7 +95,7 @@ David Watson <dwatson@cpan.org>
 
 =head1 SEE ALSO
 
-Net::DNS::Adblock
+App::DNS::Adblock
 
 =head1 COPYRIGHT
 

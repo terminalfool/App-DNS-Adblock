@@ -1,4 +1,4 @@
-Net::DNS::Adblock - A DNS implementation of Adblock Plus
+App::DNS::Adblock - A DNS implementation of Adblock Plus
 
 This is a DNS server intended for use as an ad filter for a local area network.
 Its function is to load lists of ad domains and nullify DNS queries for those

@@ -1,4 +1,4 @@
-package Net::DNS::Adblock;
+package App::DNS::Adblock;
 
 use strict;
 use warnings;
@@ -20,7 +20,7 @@ sub new {
 	bless $self, $class;
 
 	$self->{debug} = 0 unless $self->{debug};
-        $self->{host} = '*' unless $self->{host};
+        $self->{host} = inet_ntoa( (gethostbyname(hostname()))[4] )  unless $self->{host};
         $self->{port} = 53 unless $self->{port};
 
 	$self->read_config();
@@ -30,7 +30,7 @@ sub new {
 		LocalPort    => $self->{port},
 		ReplyHandler => sub { $self->reply_handler(@_); },
 		Verbose	     => ($self->{debug} > 1 ? 1 : 0)
-	);
+	) || die "couldn't create nameserver object:  $!";
 
 	$self->{nameserver} = $ns;
 
@@ -55,15 +55,13 @@ sub run {
 	$SIG{INT}  = sub { $self->signal_handler(@_) };
 	$SIG{HUP}  = sub { $self->read_config() };
 
-        my($localip) = inet_ntoa( (gethostbyname(hostname()))[4] ); #set to local ip
-
 #--switch dns settings on mac osx, wireless interface
         if ($^O	=~ /darwin/i) {
-	        system("networksetup -setdnsservers \"Wi-Fi\" $localip");
-	        system("networksetup -setsearchdomains \"Wi-Fi\" localhost");
+	        system("networksetup -setdnsservers \"Wi-Fi\" $self->{host}");
+	        system("networksetup -setsearchdomains \"Wi-Fi\" empty");
 	}
 
-	$self->log("Nameserver accessible locally @ $localip", 1);
+	$self->log("Nameserver accessible locally @ $self->{host}", 1);
 	$self->{nameserver}->main_loop;
 };
 
@@ -286,7 +284,7 @@ sub dump_adfilter {
 
 =head1 NAME
 
-Net::DNS::Adblock - A DNS based implementation of Adblock Plus
+App::DNS::Adblock - A DNS based implementation of Adblock Plus
 
 =head1 DESCRIPTION
 
@@ -308,7 +306,7 @@ ip is echoed to stdout.
 
 =head1 SYNOPSIS
 
-    my $adfilter = Net::DNS::Adblock->new( { } );
+    my $adfilter = App::DNS::Adblock->new( { } );
 
     $adfilter->run();
 
@@ -319,7 +317,7 @@ requests upstream to nameservers defined in /etc/resolv.conf.
 
 =head2 adblock_stack
 
-    my $adfilter = Net::DNS::Adblock->new( {
+    my $adfilter = App::DNS::Adblock->new( {
 
         adblock_stack => [
             {
@@ -352,7 +350,7 @@ encoded links directly.
 
 =head2 blacklist
 
-    my $adfilter = Net::DNS::Adblock->new( {
+    my $adfilter = App::DNS::Adblock->new( {
 
         blacklist => {
             path => '/var/named/blacklist',  #path to secondary hosts
@@ -372,7 +370,7 @@ only acceptable format:
 
 =head2 whitelist
 
-    my $adfilter = Net::DNS::Adblock->new( {
+    my $adfilter = App::DNS::Adblock->new( {
 
         whitelist => {
             path => '/var/named/whitelist',  #path to whitelist
@@ -384,8 +382,7 @@ to a single column list of hosts. These hosts will be removed from the filter.
 
 =head2 host
 
-The IP address to bind to. If not defined, the server binds to all (*). This might not 
-be possible on some networks. Use the host's local ip address.
+The IP address to bind to. If not defined, the server attempts binding to the local ip.
 
 =head2 port
 
