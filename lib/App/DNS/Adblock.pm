@@ -55,6 +55,11 @@ sub run {
 	$SIG{INT}  = sub { $self->signal_handler(@_) };
 	$SIG{HUP}  = sub { $self->read_config() };
 
+#       if ($^O	=~ /MSWin32/i) {       # is windows
+#	if (!grep { $^O eq $_ } qw(VMS MSWin32 os2 dos MacOS darwin NetWare beos vos)); # is unix
+
+#       also see $Config{'archname'}  http://www.perlmonks.org/?node_id=233481
+
 #--switch dns settings on mac osx, wireless interface
         if ($^O	=~ /darwin/i) {
 	        system("networksetup -setdnsservers \"Wi-Fi\" $self->{host}");
