@@ -5,8 +5,8 @@ use warnings;
 
 use Net::DNS;
 use Net::DNS::Nameserver;
-use Sys::Hostname;
-use Socket;
+use Sys::HostIP;
+use IO::CaptureOutput qw( capture );
 use LWP::Simple qw($ua getstore);
 $ua->agent("");
 
@@ -19,9 +19,15 @@ sub new {
 	my ( $class, $self ) = @_;
 	bless $self, $class;
 
-	$self->{debug} = 0 unless $self->{debug};
-        $self->{host} = inet_ntoa( (gethostbyname(hostname()))[4] )  unless $self->{host};
+#	unless ($self->{host}) {
+	my $host = Sys::HostIP->new;
+	my %reversal = reverse %{ $host->interfaces };
+	my $hostip = $host->ip;
+
+	$self->{interface} = $reversal{ $hostip };
+        $self->{host} = $hostip unless $self->{host};
         $self->{port} = 53 unless $self->{port};
+	$self->{debug} = 0 unless $self->{debug};
 
 	$self->read_config();
 
@@ -55,15 +61,19 @@ sub run {
 	$SIG{INT}  = sub { $self->signal_handler(@_) };
 	$SIG{HUP}  = sub { $self->read_config() };
 
-#       if ($^O	=~ /MSWin32/i) {       # is windows
-#	if (!grep { $^O eq $_ } qw(VMS MSWin32 os2 dos MacOS darwin NetWare beos vos)); # is unix
+#--switch dns settings on wireless interface
+#	if (!grep { $^O eq $_ } qw(VMS MSWin32 os2 dos MacOS darwin NetWare beos vos))  # is unix
+#       if ($^O	=~ /MSWin32/i)                                                          # is windows
+#               netsh interface ip add dns "Local Area Connection" 10.10.10.10 index=1
+#               netsh interface ip delete dns "Local Area Connection" 10.10.10.10
 
-#       also see $Config{'archname'}  http://www.perlmonks.org/?node_id=233481
+        if ($^O	=~ /darwin/i) {                                                         # is osx
 
-#--switch dns settings on mac osx, wireless interface
-        if ($^O	=~ /darwin/i) {
-	        system("networksetup -setdnsservers \"Wi-Fi\" $self->{host}");
-	        system("networksetup -setsearchdomains \"Wi-Fi\" empty");
+        my $stderr;
+        capture sub { system("networksetup -listallhardwareports | grep -B 1 $self->{interface} | cut -c 16-32") } => \$self->{networkservice}, \$stderr;
+	$self->{networkservice} =~ s/\n//g;
+	system("networksetup -setdnsservers $self->{networkservice} $self->{host}");
+	system("networksetup -setsearchdomains $self->{networkservice} empty");
 	}
 
 	$self->log("Nameserver accessible locally @ $self->{host}", 1);
@@ -73,10 +83,10 @@ sub run {
 sub signal_handler {
 	my ( $self, $signal ) = @_;
 
-#--restore dns settings on mac osx, wireless interface
-        if ($^O	=~ /darwin/i) {
-        	system('networksetup -setdnsservers "Wi-Fi" empty');
-	        system('networksetup -setsearchdomains "Wi-Fi" empty');
+#--restore dns settings on wireless interface
+        if ($^O	=~ /darwin/i) {                                                         # is osx
+        	system('networksetup -setdnsservers $self->{networkservice} empty');
+	        system('networksetup -setsearchdomains $self->{networkservice} empty');
 	}
 	$self->log("shutting down because of signal $signal");
 
@@ -404,9 +414,9 @@ The port of the remote nameservers. Defaults 53.
 
 =head1 CAVEATS
 
-It will be necessary to manually set dns settings to the host's local ip in order to take 
-advantage of the filtering. On Mac hosts, uncommenting the I<networksetup> system calls 
-in the module will automate this.
+The module attempts to set dns settings to the host's local ip. This may or may not work if 
+there are multiple active interfaces. You may need to manually set your dns settings to your 
+local ip.
 
 =head1 AUTHOR
 

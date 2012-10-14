@@ -1,6 +1,9 @@
-Revision history for Perl module Net::DNS::Adblock
+Revision history for Perl module App::DNS::Adblock
 
 {{$NEXT}}
+    - rename distribution, broaden dns config
+
+0.003 Fri Sep 14 2012
     - preparations for release
 
 0.002 Wed Sep 12 2012
