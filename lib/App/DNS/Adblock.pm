@@ -5,9 +5,7 @@ use warnings;
 
 use Net::DNS;
 use Net::DNS::Nameserver;
-use Net::Bind::Resolv;
 use Sys::HostIP;
-use File::Util;
 use Try::Tiny;
 use IO::CaptureOutput qw( capture );
 use LWP::Simple qw($ua getstore);
@@ -84,10 +82,10 @@ sub set_local_dns {
 
 	if (!grep { $^O eq $_ } qw(VMS MSWin32 os2 dos MacOS darwin NetWare beos vos)) { # is unix
 	        try {
-		        copy("/etc/resolv.conf","/etc/resolv.bk");
-			my $res = new Net::Bind::Resolv("/etc/resolv.conf");
-			$res->nameservers("$self->{host}");
-			print $res->as_string;
+		        system("cp /etc/resolv.conf /etc/resolv.bk");
+			open(CONF, ">", "/etc/resolv.conf");
+			print CONF "nameserver $self->{host}\n";
+			close CONF;
                 } catch {
 	                $self->log("failed to switch local dns settings: $_");
                 }
@@ -118,7 +116,7 @@ sub signal_handler {
 
 	if (!grep { $^O eq $_ } qw(VMS MSWin32 os2 dos MacOS darwin NetWare beos vos)) { # is unix
 	        try {
-		        move("/etc/resolv.bk","/etc/resolv.conf")
+		        system("mv /etc/resolv.bk /etc/resolv.conf");
                 } catch {
 	                $self->log("failed to restore local dns settings: $_");
                 }
