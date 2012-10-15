@@ -68,12 +68,11 @@ sub run {
 #               netsh interface ip delete dns "Local Area Connection" 10.10.10.10
 
         if ($^O	=~ /darwin/i) {                                                         # is osx
-
-        my $stderr;
-        capture sub { system("networksetup -listallhardwareports | grep -B 1 $self->{interface} | cut -c 16-32") } => \$self->{networkservice}, \$stderr;
-	$self->{networkservice} =~ s/\n//g;
-	system("networksetup -setdnsservers $self->{networkservice} $self->{host}");
-	system("networksetup -setsearchdomains $self->{networkservice} empty");
+	        my $stderr;
+		capture sub { system("networksetup -listallhardwareports | grep -B 1 $self->{interface} | cut -c 16-32") } => \$self->{networkservice}, \$stderr;
+		$self->{networkservice} =~ s/\n//g;
+		system("networksetup -setdnsservers $self->{networkservice} $self->{host}");
+		system("networksetup -setsearchdomains $self->{networkservice} empty");
 	}
 
 	$self->log("Nameserver accessible locally @ $self->{host}", 1);
