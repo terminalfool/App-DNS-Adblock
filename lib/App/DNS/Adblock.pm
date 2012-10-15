@@ -6,6 +6,7 @@ use warnings;
 use Net::DNS;
 use Net::DNS::Nameserver;
 use Sys::HostIP;
+use Try::Tiny;
 use IO::CaptureOutput qw( capture );
 use LWP::Simple qw($ua getstore);
 $ua->agent("");
@@ -19,12 +20,11 @@ sub new {
 	my ( $class, $self ) = @_;
 	bless $self, $class;
 
-#	unless ($self->{host}) {
 	my $host = Sys::HostIP->new;
-	my %reversal = reverse %{ $host->interfaces };
+	my %devices = reverse %{ $host->interfaces };
 	my $hostip = $host->ip;
 
-	$self->{interface} = $reversal{ $hostip };
+	$self->{interface} = $devices{ $hostip };
         $self->{host} = $hostip unless $self->{host};
         $self->{port} = 53 unless $self->{port};
 	$self->{debug} = 0 unless $self->{debug};
@@ -55,39 +55,47 @@ sub new {
 sub run {
 	my ( $self ) = shift;
 
+        $self->set_local_dns();
+
 	$SIG{KILL} = sub { $self->signal_handler(@_) };
 	$SIG{QUIT} = sub { $self->signal_handler(@_) };
 	$SIG{TERM} = sub { $self->signal_handler(@_) };
 	$SIG{INT}  = sub { $self->signal_handler(@_) };
 	$SIG{HUP}  = sub { $self->read_config() };
 
-#--switch dns settings on wireless interface
+	$self->{nameserver}->main_loop;
+};
+
+sub set_local_dns {
+	my ( $self ) = shift;
+
+        if ($^O	=~ /darwin/i) {                                                         # is osx
+                try {
+		        capture sub { system("networksetup -listallhardwareports | grep -B 1 $self->{interface} | cut -c 16-32") } => \$self->{service}, \$self->{error};
+		        $self->{service} =~ s/\n//g;
+		        system("networksetup -setdnsservers $self->{service} $self->{host}");
+		        system("networksetup -setsearchdomains $self->{service} empty");
+                } catch {
+	                $self->log("failed to switch local dns settings: $_");
+                };
+	}
 #	if (!grep { $^O eq $_ } qw(VMS MSWin32 os2 dos MacOS darwin NetWare beos vos))  # is unix
 #       if ($^O	=~ /MSWin32/i)                                                          # is windows
 #               netsh interface ip add dns "Local Area Connection" 10.10.10.10 index=1
 #               netsh interface ip delete dns "Local Area Connection" 10.10.10.10
 
-        if ($^O	=~ /darwin/i) {                                                         # is osx
-	        my $stderr;
-		capture sub { system("networksetup -listallhardwareports | grep -B 1 $self->{interface} | cut -c 16-32") } => \$self->{networkservice}, \$stderr;
-		$self->{networkservice} =~ s/\n//g;
-		system("networksetup -setdnsservers $self->{networkservice} $self->{host}");
-		system("networksetup -setsearchdomains $self->{networkservice} empty");
-	}
-
-	$self->log("Nameserver accessible locally @ $self->{host}", 1);
-	$self->{nameserver}->main_loop;
-};
+	$self->log("nameserver accessible locally @ $self->{host}; local dns settings ($self->{interface}) switched", 1);
+}
 
 sub signal_handler {
 	my ( $self, $signal ) = @_;
 
-#--restore dns settings on wireless interface
+#--restore dns settings
         if ($^O	=~ /darwin/i) {                                                         # is osx
-        	system("networksetup -setdnsservers $self->{networkservice} empty");
-	        system("networksetup -setsearchdomains $self->{networkservice} empty");
+        	system("networksetup -setdnsservers $self->{service} empty");
+	        system("networksetup -setsearchdomains $self->{service} empty");
 	}
-	$self->log("shutting down because of signal $signal");
+	$self->log("shutting down: signal $signal; local dns settings restored");
 
 	exit;
 }
@@ -210,6 +218,7 @@ sub parse_resolv_conf {
 
 	return @{$self->{forwarders}} if $self->{forwarders};
 
+	#need windows case
 	$self->log('reading /etc/resolv.conf file');
 
 	my @dns_servers;
