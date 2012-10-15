@@ -85,8 +85,8 @@ sub signal_handler {
 
 #--restore dns settings on wireless interface
         if ($^O	=~ /darwin/i) {                                                         # is osx
-        	system('networksetup -setdnsservers $self->{networkservice} empty');
-	        system('networksetup -setsearchdomains $self->{networkservice} empty');
+        	system("networksetup -setdnsservers $self->{networkservice} empty");
+	        system("networksetup -setsearchdomains $self->{networkservice} empty");
 	}
 	$self->log("shutting down because of signal $signal");
 
