@@ -7,7 +7,7 @@ use Net::DNS;
 use Net::DNS::Nameserver;
 use Sys::HostIP;
 use Try::Tiny;
-use IO::CaptureOutput qw( capture );
+use Capture::Tiny qw(:all);
 use LWP::Simple qw($ua getstore);
 $ua->agent("");
 
@@ -24,7 +24,6 @@ sub new {
 	my %devices = reverse %{ $host->interfaces };
 	my $hostip = $host->ip;
 
-	$self->{setdns} = 1 unless $self->{setdns};
 	$self->{interface} = $devices{ $hostip };
         $self->{host} = $hostip unless $self->{host};
         $self->{port} = 53 unless $self->{port};
@@ -70,21 +69,24 @@ sub run {
 sub set_local_dns {
 	my ( $self ) = shift;
 
+	my $stderr;
+	my @result;
+
         if ($^O	=~ /darwin/i) {                                                          # is osx
-                try {
-		        capture sub { system("networksetup -listallhardwareports | grep -B 1 $self->{interface} | cut -c 16-32") } => \$self->{service}, \$self->{error};
-		        $self->{service} =~ s/\n//g;
+	        try {
+	                ($self->{service}, $stderr, @result) = capture { system("networksetup -listallhardwareports | grep -B 1 $self->{interface} | cut -c 16-32") } or die $stderr;
+			$self->{service} =~ s/\n//g;
 		        system("networksetup -setdnsservers $self->{service} $self->{host}");
 		        system("networksetup -setsearchdomains $self->{service} empty");
-                } catch {
-	                $self->log("failed to switch local dns settings: $_");
-                }
+	       } catch {
+		       $self->log("failed to switch local dns settings: $_");
+	       }
 	}
 
 	if (!grep { $^O eq $_ } qw(VMS MSWin32 os2 dos MacOS darwin NetWare beos vos)) { # is unix
 	        try {
-		        system("cp /etc/resolv.conf /etc/resolv.bk");
-			open(CONF, ">", "/etc/resolv.conf");
+		        system("cp /etc/resolv.conf /etc/resolv.bk") or die;
+			open(CONF, ">", "/etc/resolv.conf") or die;
 			print CONF "nameserver $self->{host}\n";
 			close CONF;
                 } catch {
@@ -94,7 +96,7 @@ sub set_local_dns {
 
         if ($^O	=~ /MSWin32/i) {                                                         # is windows
 	        try {
-                        system("netsh interface ip add dns \"Local Area Connection\" static $self->{host} index=1");
+                        system("netsh interface ip add dns \"Local Area Connection\" static $self->{host} index=1") or die;
                 } catch {
 	                $self->log("failed to switch local dns settings: $_");
                 }
@@ -103,13 +105,12 @@ sub set_local_dns {
 	$self->log("nameserver accessible locally @ $self->{host}; local dns settings ($self->{interface}) switched", 1);
 }
 
-sub signal_handler {
-	my ( $self, $signal ) = @_;
+sub restore_local_dns {
 
         if ($^O	=~ /darwin/i) {                                                         # is osx
 	        try {
-                	system("networksetup -setdnsservers $self->{service} empty");
-			system("networksetup -setsearchdomains $self->{service} empty");
+                	system("networksetup -setdnsservers $self->{service} empty") or die;
+			system("networksetup -setsearchdomains $self->{service} empty") or die;
                 } catch {
 	                $self->log("failed to restore local dns settings: $_");
                 }
@@ -117,7 +118,7 @@ sub signal_handler {
 
 	if (!grep { $^O eq $_ } qw(VMS MSWin32 os2 dos MacOS darwin NetWare beos vos)) { # is unix
 	        try {
-		        system("mv /etc/resolv.bk /etc/resolv.conf");
+		        system("mv /etc/resolv.bk /etc/resolv.conf") or die;
                 } catch {
 	                $self->log("failed to restore local dns settings: $_");
                 }
@@ -125,13 +126,19 @@ sub signal_handler {
 
         if ($^O	=~ /MSWin32/i) {                                                         # is windows
 	        try {
-                        system("netsh interface ip delete dns \"Local Area Connection\" static $self->{host} index=1");
+                        system("netsh interface ip delete dns \"Local Area Connection\" static $self->{host} index=1") or die;
                 } catch {
 	                $self->log("failed to restore local dns settings: $_");
                 }
         }
 
-	$self->log("shutting down: signal $signal; local dns settings restored");
+	$self->log("local dns settings restored");
+}
+
+sub signal_handler {
+	my ( $self, $signal ) = @_;
+
+	$self->log("shutting down: signal $signal");
 
 	exit;
 }
