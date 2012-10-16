@@ -24,6 +24,7 @@ sub new {
 	my %devices = reverse %{ $host->interfaces };
 	my $hostip = $host->ip;
 
+	$self->{setdns} = 1 unless $self->{setdns};
 	$self->{interface} = $devices{ $hostip };
         $self->{host} = $hostip unless $self->{host};
         $self->{port} = 53 unless $self->{port};
@@ -93,7 +94,7 @@ sub set_local_dns {
 
         if ($^O	=~ /MSWin32/i) {                                                         # is windows
 	        try {
-                        system("netsh interface ip add dns \"Local Area Connection\" $self->{host} index=1");
+                        system("netsh interface ip add dns \"Local Area Connection\" static $self->{host} index=1");
                 } catch {
 	                $self->log("failed to switch local dns settings: $_");
                 }
@@ -124,7 +125,7 @@ sub signal_handler {
 
         if ($^O	=~ /MSWin32/i) {                                                         # is windows
 	        try {
-                        system("netsh interface ip delete dns \"Local Area Connection\" $self->{host} index=1");
+                        system("netsh interface ip delete dns \"Local Area Connection\" static $self->{host} index=1");
                 } catch {
 	                $self->log("failed to restore local dns settings: $_");
                 }
@@ -253,7 +254,8 @@ sub parse_resolv_conf {
 
 	return @{$self->{forwarders}} if $self->{forwarders};
 
-	#need windows case
+	#need darwin case -- networksetup 
+	#need windows case -- netsh interface ip show dns or show config
 	$self->log('reading /etc/resolv.conf file');
 
 	my @dns_servers;
