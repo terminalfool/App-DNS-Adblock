@@ -87,6 +87,8 @@ Though the module permits the use of as many lists as you like, it should be suf
      sudo perl adblock.pl -bg
      # you must manually kill this process
 
+The -bg switch forks a child process and will likely fail under windows. The script/module has not been tested with windows..
+
 Edit the adblock_stack, blacklist and whitelist args to your liking.
 
 =head1 AUTHOR
