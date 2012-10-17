@@ -16,7 +16,8 @@ my $verbose	      = 0;
 my $help	      = 0;
 my $background	      = 0;
 my $nameserver	      = undef;
-my $nameserver_port   = 0;
+my $nameserver_port   = undef;
+my $setlocaldns       = undef;
 
 GetOptions(
     'debug|d'	               => \$debug,
@@ -26,6 +27,7 @@ GetOptions(
     'port|p=s'	               => \$port,
     'background|bg'            => \$background,
     'nameserver|ns=s'          => \$nameserver,
+    'setlocaldns|sld'	       => \$setlocaldns,
 );
 
 pod2usage(1) if $help;
@@ -43,6 +45,7 @@ $args->{host}		  = $host if $host;
 $args->{port}		  = $port if $port;
 $args->{nameservers}	  = [ $nameserver ] if $nameserver;
 $args->{nameservers_port} = $nameserver_port if $nameserver_port;
+$args->{setlocaldns}	  = $setlocaldns if $setlocaldns;
 $args->{adblock_stack}    = [
 			       { url => 'http://pgl.yoyo.org/adservers/serverlist.php?hostformat=adblockplus&showintro=0&startdate[day]=&startdate[month]=&startdate[year]=&mimetype=plaintext',
 			         path => '/var/named/pgl-adblock.txt',
@@ -75,6 +78,7 @@ adblock.pl [options]
    -p   -port                   port (defaults to 53)
    -bg  -background             run the process in the background
    -ns  -nameserver             forward queries to this nameserver (<ip>:<port>)
+   -sld -setlocaldns            adjust dns settings on local host
 
 =head1 DESCRIPTION
 
@@ -87,9 +91,11 @@ Though the module permits the use of as many lists as you like, it should be suf
      sudo perl adblock.pl -bg
      # you must manually kill this process
 
-The -bg switch forks a child process and will likely fail under windows. The script/module has not been tested with windows..
-
 Edit the adblock_stack, blacklist and whitelist args to your liking.
+
+The -bg switch forks a child process and will likely fail under windows. The script/module's portability hasn't been tested.
+
+The -sld switch attempts setting the machine's dns lookup to the local server. Tested only on darwin.
 
 =head1 AUTHOR
 
