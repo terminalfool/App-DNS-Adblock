@@ -32,7 +32,7 @@ GetOptions(
 
 pod2usage(1) if $help;
 
-system("killall named");
+#system("killall named"); #any local nameservers should be halted
 
 fork && exit if $background;
 
@@ -56,7 +56,7 @@ $args->{adblock_stack}    = [
 			         refresh => 5,
 			       },
 			    ];
-$args->{blacklist}	  = { path => '/var/named/blacklist' };
+#$args->{blacklist}	  = { path => '/var/named/blacklist' };
 
 #$args->{whitelist}	  = { path => '/var/named/whitelist' };
 
@@ -92,12 +92,6 @@ Though the module permits the use of as many lists as you like, it should be suf
      # you must manually kill this process
 
 Edit the adblock_stack, blacklist and whitelist args to your liking.
-
-The -bg switch forks a child process and will likely fail under windows. If it doesn't fail, the forked pseudo-process is likely to cause problems anyway.
-
-The -sld switch attempts setting the machine's dns lookup to the local server.
-
-The script/module's portability hasn't been tested beyond its development under darwin.
 
 =head1 AUTHOR
 

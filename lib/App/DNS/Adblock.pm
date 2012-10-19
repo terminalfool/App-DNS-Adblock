@@ -101,13 +101,6 @@ sub set_local_dns {
                 }
 	}
 
-        if ($^O	=~ /MSWin32/i) {                                                         # is windows
-	        eval {
-	                ($stdout, $stderr, @result) = capture { system("netsh interface ip add dns \"Local Area Connection\" static $self->{host} index=1") };
-			die $stderr || $result[0] if ($stderr || ($result[0] < 0));
-                }
-        }
-
 	if ($stderr||$result[0]) {
 	       $self->log("switching of local dns settings failed: $@", 1);
 	       undef $self->{setlocaldns};
@@ -137,13 +130,6 @@ sub restore_local_dns {
 	if (!grep { $^O eq $_ } qw(VMS MSWin32 os2 dos MacOS darwin NetWare beos vos)) { # is unix
 	        eval {
                         ($stdout, $stderr, @result) = capture { system("mv /etc/resolv.bk /etc/resolv.conf") };
-			die $stderr || $result[0];
-                }
-        }
-
-        if ($^O	=~ /MSWin32/i) {                                                         # is windows
-	        eval {
-                        ($stdout, $stderr, @result) = capture { system("netsh interface ip delete dns \"Local Area Connection\" static $self->{host} index=1") };
 			die $stderr || $result[0];
                 }
         }
@@ -280,8 +266,6 @@ sub parse_resolv_conf {
 
 	return @{$self->{forwarders}} if $self->{forwarders};
 
-	#need darwin case -- networksetup
-	#need windows case -- netsh interface ip show dns or show config
 	$self->log('reading /etc/resolv.conf file');
 
 	my @dns_servers;
@@ -466,28 +450,30 @@ only acceptable format:
 The whitelist hashref, like the blacklist hashref, contains only a path parameter 
 to a single column list of hosts. These hosts will be removed from the filter.
 
-=head2 host
+=head2 host, port
+
+    my $adfilter = App::DNS::Adblock->new( { host => $host, port => $port } );
 
 The IP address to bind to. If not defined, the server attempts binding to the local ip.
+The default port is 53.
 
-=head2 port
+=head2 nameservers, nameservers_port
 
-The tcp & udp port to run the DNS server under. Defaults to 53.
-
-=head2 nameservers
+    my $adfilter = App::DNS::Adblock->new( { nameservers => [ $proxy1, $proxy2 ], nameservers_port => $port } );
 
 An arrayref of one or more nameservers to forward any DNS queries to. Defaults to nameservers 
-listed in /etc/resolv.conf.
+listed in /etc/resolv.conf. The default port is 53.
 
-=head2 nameservers_port
+=head2 setlocaldns
 
-The port of the remote nameservers. Defaults 53.
+    my $adfilter = App::DNS::Adblock->new( { setlocaldns  => '1' } ); #defaults to '0'
+
+If set, the module attempts to set local dns settings to the host's ip. This may or may not work
+if there are multiple active interfaces. You may need to manually adjust your local dns settings.
 
 =head1 CAVEATS
 
-The module attempts to set dns settings to the host's local ip. This may or may not work if 
-there are multiple active interfaces. You may need to manually set your dns settings to your 
-local ip.
+Written and tested under darwin only.
 
 =head1 AUTHOR
 
