@@ -74,7 +74,7 @@ adblock.pl [options]
    -h   -help                   display this help
    -v   -verbose                show server activity
    -d   -debug                  enable debug mode
-        -host                   host (defaults to all *)
+        -host                   host (defaults to local ip)
    -p   -port                   port (defaults to 53)
    -bg  -background             run the process in the background
    -ns  -nameserver             forward queries to this nameserver (<ip>:<port>)
@@ -86,16 +86,18 @@ This script implements a dynamic DNS proxy server for the purpose of blocking ad
 
 =head1 CAVEATS
 
-Though the module permits the use of as many lists as you like, it should be sufficient to run this script using one or two lists, accepting the defaults and running it in the background:
+Though the module permits the use of as many lists as you like, it should be sufficient to use one or two lists, accept the defaults and run it in the background:
 
      sudo perl adblock.pl -bg
      # you must manually kill this process
 
 Edit the adblock_stack, blacklist and whitelist args to your liking.
 
-The -bg switch forks a child process and will likely fail under windows. The script/module's portability hasn't been tested.
+The -bg switch forks a child process and will likely fail under windows. If it doesn't fail, the forked pseudo-process is likely to cause problems anyway.
 
-The -sld switch attempts setting the machine's dns lookup to the local server. Tested only on darwin.
+The -sld switch attempts setting the machine's dns lookup to the local server.
+
+The script/module's portability hasn't been tested beyond its development under darwin.
 
 =head1 AUTHOR
 

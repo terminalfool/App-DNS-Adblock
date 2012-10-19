@@ -78,8 +78,8 @@ sub set_local_dns {
         if ($^O	=~ /darwin/i) {                                                          # is osx
 	        eval {
 	                ($self->{service}, $stderr, @result) = capture { system("networksetup -listallhardwareports | grep -B 1 $self->{interface} | cut -c 16-32") };
-			if ($stderr) {
-			       die $stderr;
+			if ($stderr || ($result[0] < 0)) {
+			       die $stderr || $result[0];
 			} else {
 			       $self->{service} =~ s/\n//g;
 			       system("networksetup -setdnsservers $self->{service} $self->{host}");
@@ -91,8 +91,8 @@ sub set_local_dns {
 	if (!grep { $^O eq $_ } qw(VMS MSWin32 os2 dos MacOS darwin NetWare beos vos)) { # is unix
 	        eval {
 	                ($stdout, $stderr, @result) = capture { system("cp /etc/resolv.conf /etc/resolv.bk") };
-			if ($stderr) {
-			       die $stderr;
+			if ($stderr || ($result[0] < 0)) {
+			       die $stderr || $result[0];
 			} else {
 			       open(CONF, ">", "/etc/resolv.conf");
 			       print CONF "nameserver $self->{host}\n";
@@ -104,12 +104,16 @@ sub set_local_dns {
         if ($^O	=~ /MSWin32/i) {                                                         # is windows
 	        eval {
 	                ($stdout, $stderr, @result) = capture { system("netsh interface ip add dns \"Local Area Connection\" static $self->{host} index=1") };
-			die if $stderr;
+			die $stderr || $result[0] if ($stderr || ($result[0] < 0));
                 }
         }
 
-	$stderr ? $self->log("switching of local dns settings failed: $stderr", 1)
-	        : $self->log("local dns settings ($self->{interface}) switched", 1);
+	if ($stderr||$result[0]) {
+	       $self->log("switching of local dns settings failed: $@", 1);
+	       undef $self->{setlocaldns};
+	} else {
+	       $self->log("local dns settings ($self->{interface}) switched", 1);
+	}
 }
 
 sub restore_local_dns {
@@ -123,7 +127,7 @@ sub restore_local_dns {
 	        eval {
 		        ($stdout, $stderr, @result) = capture { system("networksetup -setdnsservers $self->{service} empty") };
 			if ($stderr || ($result[0] < 0)) {
-			       die $stderr;
+			       die $stderr || $result[0];
 			} else {
                                system("networksetup -setsearchdomains $self->{service} empty");
 			}
@@ -133,18 +137,18 @@ sub restore_local_dns {
 	if (!grep { $^O eq $_ } qw(VMS MSWin32 os2 dos MacOS darwin NetWare beos vos)) { # is unix
 	        eval {
                         ($stdout, $stderr, @result) = capture { system("mv /etc/resolv.bk /etc/resolv.conf") };
-			die if $stderr;
+			die $stderr || $result[0];
                 }
         }
 
         if ($^O	=~ /MSWin32/i) {                                                         # is windows
 	        eval {
                         ($stdout, $stderr, @result) = capture { system("netsh interface ip delete dns \"Local Area Connection\" static $self->{host} index=1") };
-			die if $stderr;
+			die $stderr || $result[0];
                 }
         }
 
-	($stderr||$result[0]) ? $self->log("local dns settings failed to restore: $stderr", 1)
+	($stderr||$result[0]) ? $self->log("local dns settings failed to restore: $@", 1)
 	        : $self->log("local dns settings restored", 1);
 }
 
