@@ -17,7 +17,7 @@ my $help	      = 0;
 my $background	      = 0;
 my $nameserver	      = undef;
 my $nameserver_port   = undef;
-my $setlocaldns       = undef;
+my $setdns            = undef;
 
 GetOptions(
     'debug|d'	               => \$debug,
@@ -27,7 +27,7 @@ GetOptions(
     'port|p=s'	               => \$port,
     'background|bg'            => \$background,
     'nameserver|ns=s'          => \$nameserver,
-    'setlocaldns|sld'	       => \$setlocaldns,
+    'setdns'    	       => \$setdns,
 );
 
 pod2usage(1) if $help;
@@ -45,7 +45,7 @@ $args->{host}		  = $host if $host;
 $args->{port}		  = $port if $port;
 $args->{nameservers}	  = [ $nameserver ] if $nameserver;
 $args->{nameservers_port} = $nameserver_port if $nameserver_port;
-$args->{setlocaldns}	  = $setlocaldns if $setlocaldns;
+$args->{setdns}	          = 1 if $setdns;
 $args->{adblock_stack}    = [
 			       { url => 'http://pgl.yoyo.org/adservers/serverlist.php?hostformat=adblockplus&showintro=0&startdate[day]=&startdate[month]=&startdate[year]=&mimetype=plaintext',
 			         path => '/var/named/pgl-adblock.txt',
@@ -78,7 +78,7 @@ adblock.pl [options]
    -p   -port                   port (defaults to 53)
    -bg  -background             run the process in the background
    -ns  -nameserver             forward queries to this nameserver (<ip>:<port>)
-   -sld -setlocaldns            adjust dns settings on local host
+        -setdns                 adjust dns settings on local host
 
 =head1 DESCRIPTION
 
@@ -86,9 +86,11 @@ This script implements a dynamic DNS proxy server for the purpose of blocking ad
 
 =head1 CAVEATS
 
+Installation places this script in /usr/local/bin/
+
 Though the module permits the use of as many lists as you like, it should be sufficient to use one or two lists, accept the defaults and run it in the background:
 
-     sudo perl adblock.pl -bg
+     sudo perl /usr/local/bin/adblock.pl -bg -setdns
      # you must manually kill this process
 
 Edit the adblock_stack, blacklist and whitelist args to your liking.

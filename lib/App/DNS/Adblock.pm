@@ -27,7 +27,7 @@ sub new {
 
 	$self->{interface} = $devices{ $hostip };
         $self->{host} = $hostip unless $self->{host};
-        $self->{setlocaldns} = 0 unless $self->{setlocaldns};
+        $self->{setdns} = 0 unless $self->{setdns};
         $self->{port} = 53 unless $self->{port};
 	$self->{debug} = 0 unless $self->{debug};
 
@@ -55,7 +55,7 @@ sub new {
 sub run {
 	my ( $self ) = shift;
 
-        $self->set_local_dns() if $self->{setlocaldns};
+        $self->set_local_dns() if $self->{setdns};
 
 	$SIG{KILL} = sub { $self->signal_handler(@_) };
 	$SIG{QUIT} = sub { $self->signal_handler(@_) };
@@ -103,7 +103,7 @@ sub set_local_dns {
 
 	if ($stderr||$result[0]) {
 	       $self->log("switching of local dns settings failed: $@", 1);
-	       undef $self->{setlocaldns};
+	       undef $self->{setdns};
 	} else {
 	       $self->log("local dns settings ($self->{interface}) switched", 1);
 	}
@@ -143,7 +143,7 @@ sub signal_handler {
 
 	$self->log("shutting down: signal $signal");
 
-        $self->restore_local_dns() if $self->{setlocaldns};
+        $self->restore_local_dns() if $self->{setdns};
 
 	exit;
 }
@@ -313,7 +313,7 @@ sub parse_adblock_hosts {
 
 	while (<HOSTS>) {
 	        chomp;
-		next unless s/^\|\|((\w+\.)+\w+)\^(\$third-party)?$/$1/;  #extract adblock host
+                next unless s/^\|\|(.*)\^(\$third-party)?$/$1/;  #extract adblock host
 		$hosts{$_}++;
 	}
 
@@ -464,9 +464,9 @@ The default port is 53.
 An arrayref of one or more nameservers to forward any DNS queries to. Defaults to nameservers 
 listed in /etc/resolv.conf. The default port is 53.
 
-=head2 setlocaldns
+=head2 setdns
 
-    my $adfilter = App::DNS::Adblock->new( { setlocaldns  => '1' } ); #defaults to '0'
+    my $adfilter = App::DNS::Adblock->new( { setdns  => '1' } ); #defaults to '0'
 
 If set, the module attempts to set local dns settings to the host's ip. This may or may not work
 if there are multiple active interfaces. You may need to manually adjust your local dns settings.
