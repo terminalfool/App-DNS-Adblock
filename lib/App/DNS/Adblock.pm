@@ -9,6 +9,7 @@ use Sys::HostIP;
 use Capture::Tiny qw(capture);
 use LWP::Simple qw($ua getstore);
 $ua->agent("");
+use Mozilla::CA;
 
 use POSIX qw( strftime );
 use Carp;
@@ -26,9 +27,9 @@ sub new {
 	my $hostip = $host->ip;
 
 	$self->{interface} = $devices{ $hostip };
-        $self->{host} = $hostip unless $self->{host};
-        $self->{setdns} = 0 unless $self->{setdns};
-        $self->{port} = 53 unless $self->{port};
+    $self->{host} = $hostip unless $self->{host};
+    $self->{setdns} = 0 unless $self->{setdns};
+    $self->{port} = 53 unless $self->{port};
 	$self->{debug} = 0 unless $self->{debug};
 
 	my $ns = Net::DNS::Nameserver->new(
@@ -55,7 +56,7 @@ sub new {
 sub run {
 	my ( $self ) = shift;
 
-        $self->set_local_dns() if $self->{setdns};
+    $self->set_local_dns() if $self->{setdns};
 
 	$SIG{KILL} = sub { $self->signal_handler(@_) };
 	$SIG{QUIT} = sub { $self->signal_handler(@_) };
@@ -143,7 +144,7 @@ sub signal_handler {
 
 	$self->log("shutting down: signal $signal");
 
-        $self->restore_local_dns() if $self->{setdns};
+    $self->restore_local_dns() if $self->{setdns};
 
 	exit;
 }
@@ -358,21 +359,19 @@ App::DNS::Adblock - A DNS based implementation of Adblock Plus
 
 =head1 DESCRIPTION
 
-This is a DNS server intended for use as an ad filter for a local area network. 
-Its function is to load lists of ad domains and nullify DNS queries for those 
-domains to the loopback address. Any other DNS queries are proxied upstream, 
-either to a specified list of nameservers or to those listed in /etc/resolv.conf. 
+This is a DNS ad filter for a local area network. Its function is to load 
+lists of ad domains and nullify DNS queries for those domains to the loopback 
+address. Any other DNS queries are proxied upstream, either to a specified 
+list of nameservers or to those listed in /etc/resolv.conf. 
 
-The module loads externally maintained lists of ad hosts intended for use by 
-Adblock Plus, a popular ad filtering extension for the Firefox browser. Use 
-of the lists focuses only on third-party listings that define dedicated 
-advertising and tracking hosts.
+The module loads externally maintained lists of ad hosts intended for use 
+by the I<adblock plus> Firefox extension. Use of the lists focuses only on 
+third-party listings that define dedicated advertising and tracking hosts.
 
 A locally maintained blacklist/whitelist can also be loaded. In this case, host 
 listings must conform to a one host per line format.
 
-Once running, local network dns queries can be addressed to the host's ip. This 
-ip is echoed to stdout.
+Once running, local network dns queries can be addressed to the host's ip.
 
 =head1 SYNOPSIS
 
@@ -380,7 +379,7 @@ ip is echoed to stdout.
 
     $adfilter->run();
 
-Without any arguments, the module will function simply as a proxy, forwarding all 
+Without any parameters, the module will function simply as a proxy, forwarding all 
 requests upstream to nameservers defined in /etc/resolv.conf.
 
 =head1 ATTRIBUTES
@@ -412,7 +411,7 @@ may be before it is refreshed.
 
 There are dozens of adblock plus filters scattered throughout the internet. 
 You can load as many as you like, though one or two lists such as those listed 
-above should suffice.
+above should do.
 
 A collection of lists is available at http://adblockplus.org/en/subscriptions. 
 The module will accept standard or abp:subscribe? urls. You can cut and paste 
@@ -473,7 +472,7 @@ if there are multiple active interfaces. You may need to manually adjust your lo
 
 =head1 CAVEATS
 
-Written and tested under darwin only.
+Tested under darwin only.
 
 =head1 AUTHOR
 
@@ -481,7 +480,7 @@ David Watson <dwatson@cpan.org>
 
 =head1 SEE ALSO
 
-scripts/adfilter.pl in the distribution
+Installed script: /usr/local/bin/adfilter.pl (scripts/adfilter.pl in the distribution)
 
 =head1 COPYRIGHT AND LICENSE
 
