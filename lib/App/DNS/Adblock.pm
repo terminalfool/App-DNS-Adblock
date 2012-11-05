@@ -27,9 +27,9 @@ sub new {
 	my $hostip = $host->ip;
 
 	$self->{interface} = $devices{ $hostip };
-    $self->{host} = $hostip unless $self->{host};
-    $self->{setdns} = 0 unless $self->{setdns};
-    $self->{port} = 53 unless $self->{port};
+	$self->{host} = $hostip unless $self->{host};
+	$self->{setdns} = 0 unless $self->{setdns};
+	$self->{port} = 53 unless $self->{port};
 	$self->{debug} = 0 unless $self->{debug};
 
 	my $ns = Net::DNS::Nameserver->new(
@@ -56,7 +56,7 @@ sub new {
 sub run {
 	my ( $self ) = shift;
 
-    $self->set_local_dns() if $self->{setdns};
+	$self->set_local_dns() if $self->{setdns};
 
 	$SIG{KILL} = sub { $self->signal_handler(@_) };
 	$SIG{QUIT} = sub { $self->signal_handler(@_) };
@@ -239,7 +239,7 @@ sub search_ip_in_adfilter {
 	my $trim = $hostname;
 	my $sld = $hostname;
 	$trim =~ s/^www\.//i;
-	$sld =~ s/^.*\.(\w+\.\w+)$/$1/;
+	$sld =~ s/^.*\.(.+\..+)$/$1/;
 
 	return '::1' if ( exists $self->{adfilter}->{$hostname} ||
 			  exists $self->{adfilter}->{$trim} ||
