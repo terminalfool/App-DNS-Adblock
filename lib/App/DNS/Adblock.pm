@@ -31,6 +31,7 @@ sub new {
 	$self->{setdns} = 0 unless $self->{setdns};
 	$self->{port} = 53 unless $self->{port};
 	$self->{debug} = 0 unless $self->{debug};
+	$self->{loopback} = '127.0.0.1' unless $self->{loopback};
 
 	my $ns = Net::DNS::Nameserver->new(
 		LocalAddr    => $self->{host},
@@ -238,10 +239,12 @@ sub search_ip_in_adfilter {
 
 	my $trim = $hostname;
 	my $sld = $hostname;
+	my $loopback = $self->{loopback};
+
 	$trim =~ s/^www\.//i;
 	$sld =~ s/^.*\.(.+\..+)$/$1/;
 
-	return '::1' if ( exists $self->{adfilter}->{$hostname} ||
+	return $loopback if ( exists $self->{adfilter}->{$hostname} ||
 			  exists $self->{adfilter}->{$trim} ||
 			  exists $self->{adfilter}->{$sld} );
         return;
@@ -357,16 +360,24 @@ sub dump_adfilter {
 
 App::DNS::Adblock - A DNS based implementation of Adblock Plus
 
+=head1 VERSION
+
+version 0.004
+
 =head1 DESCRIPTION
 
 This is a DNS ad filter for a local area network. Its function is to load 
-lists of ad domains and nullify DNS queries for those domains to the loopback 
+lists of ad domains and nullify DNS queries for those domains to a loopback 
 address. Any other DNS queries are proxied upstream, either to a specified 
 list of nameservers or to those listed in /etc/resolv.conf. 
 
 The module loads externally maintained lists of ad hosts intended for use 
 by the I<adblock plus> Firefox extension. Use of the lists focuses only on 
 third-party listings that define dedicated advertising and tracking hosts.
+
+A collection of lists is available at http://adblockplus.org/en/subscriptions. 
+The module will accept standard or abp:subscribe? urls. You can cut and paste 
+encoded links directly.
 
 A locally maintained blacklist/whitelist can also be loaded. In this case, host 
 listings must conform to a one host per line format.
@@ -409,14 +420,6 @@ a path string that defines where the module will write a local copy of
 the list; a refresh value that determines what age (in days) the local copy 
 may be before it is refreshed.
 
-There are dozens of adblock plus filters scattered throughout the internet. 
-You can load as many as you like, though one or two lists such as those listed 
-above should do.
-
-A collection of lists is available at http://adblockplus.org/en/subscriptions. 
-The module will accept standard or abp:subscribe? urls. You can cut and paste 
-encoded links directly.
-
 =head2 blacklist
 
     my $adfilter = App::DNS::Adblock->new( {
@@ -427,8 +430,8 @@ encoded links directly.
     } );
 
 The blacklist hashref contains only a path string that defines where the module will 
-access a local list of ad hosts to nullify. As mentioned above, a single column is the 
-only acceptable format:
+access a local list of ad hosts to nullify. The host list must conform to a one host 
+per line format:
 
     # ad nauseam
     googlesyndication.com
@@ -470,6 +473,12 @@ listed in /etc/resolv.conf. The default port is 53.
 If set, the module attempts to set local dns settings to the host's ip. This may or may not work
 if there are multiple active interfaces. You may need to manually adjust your local dns settings.
 
+=head2 loopback
+
+    my $adfilter = App::DNS::Adblock->new( { loopback  => '127.255.255.254' } ); #defaults to '127.0.0.1'
+
+If set, the nameserver will return this address rather than bypassing the local network interface hardware.
+
 =head1 CAVEATS
 
 Tested under darwin only.
@@ -480,7 +489,7 @@ David Watson <dwatson@cpan.org>
 
 =head1 SEE ALSO
 
-Installed script: /usr/local/bin/adfilter.pl (scripts/adfilter.pl in the distribution)
+Installed script: /usr/local/bin/adblock.pl (scripts/adblock.pl in the distribution)
 
 =head1 COPYRIGHT AND LICENSE
 
@@ -490,4 +499,3 @@ it under the same terms as Perl itself.
 The full text of the license can be found in the LICENSE file included with this module.
 
 =cut
-

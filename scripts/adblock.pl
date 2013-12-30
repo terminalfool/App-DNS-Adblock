@@ -18,6 +18,7 @@ my $background	      = 0;
 my $nameserver	      = undef;
 my $nameserver_port   = undef;
 my $setdns            = undef;
+my $loopback          = undef;
 
 GetOptions(
     'debug|d'	               => \$debug,
@@ -28,6 +29,7 @@ GetOptions(
     'background|bg'            => \$background,
     'nameserver|ns=s'          => \$nameserver,
     'setdns'    	       => \$setdns,
+    'loopback'    	       => \$loopback,
 );
 
 pod2usage(1) if $help;
@@ -46,6 +48,7 @@ $args->{port}		  = $port if $port;
 $args->{nameservers}	  = [ $nameserver ] if $nameserver;
 $args->{nameservers_port} = $nameserver_port if $nameserver_port;
 $args->{setdns}	          = 1 if $setdns;
+$args->{loopback}         = $loopback if $loopback;
 $args->{adblock_stack}    = [
 			       { url => 'http://pgl.yoyo.org/adservers/serverlist.php?hostformat=adblockplus&showintro=0&startdate[day]=&startdate[month]=&startdate[year]=&mimetype=plaintext',
 			         path => '/var/named/pgl-adblock.txt',
@@ -79,6 +82,7 @@ adblock.pl [options]
    -bg  -background             run the process in the background
    -ns  -nameserver             forward queries to this nameserver (<ip>:<port>)
         -setdns                 adjust dns settings on local host
+        -loopback               set specific loopback address (defaults to 127.0.0.1)
 
 =head1 DESCRIPTION
 
