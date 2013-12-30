@@ -491,6 +491,8 @@ David Watson <dwatson@cpan.org>
 
 Installed script: /usr/local/bin/adblock.pl (scripts/adblock.pl in the distribution)
 
+This module is essentially a lightweight, non-Moose version of Net::DNS::Dynamic::Adfilter
+
 =head1 COPYRIGHT AND LICENSE
 
 This library is free software, you can redistribute it and/or modify
