@@ -430,7 +430,7 @@ may be before it is refreshed.
     } );
 
 The blacklist hashref contains only a path string that defines where the module will 
-access a local list of ad hosts to nullify. The host list must conform to a one host 
+access a local list of ad hosts. The host list must conform to a one host 
 per line format:
 
     # ad nauseam
