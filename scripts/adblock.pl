@@ -29,7 +29,7 @@ GetOptions(
     'background|bg'            => \$background,
     'nameserver|ns=s'          => \$nameserver,
     'setdns'    	       => \$setdns,
-    'loopback'    	       => \$loopback,
+    'loopback=s'    	       => \$loopback,
 );
 
 pod2usage(1) if $help;

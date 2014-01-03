@@ -28,10 +28,8 @@ sub new {
 
 	$self->{interface} = $devices{ $hostip };
 	$self->{host} = $hostip unless $self->{host};
-	$self->{setdns} = 0 unless $self->{setdns};
 	$self->{port} = 53 unless $self->{port};
 	$self->{debug} = 0 unless $self->{debug};
-	$self->{loopback} = '127.0.0.1' unless $self->{loopback};
 
 	my $ns = Net::DNS::Nameserver->new(
 		LocalAddr    => $self->{host},
@@ -239,7 +237,7 @@ sub search_ip_in_adfilter {
 
 	my $trim = $hostname;
 	my $sld = $hostname;
-	my $loopback = $self->{loopback};
+	my $loopback = $self->{loopback} || '127.0.0.1';
 
 	$trim =~ s/^www\.//i;
 	$sld =~ s/^.*\.(.+\..+)$/$1/;
@@ -477,7 +475,14 @@ if there are multiple active interfaces. You may need to manually adjust your lo
 
     my $adfilter = App::DNS::Adblock->new( { loopback  => '127.255.255.254' } ); #defaults to '127.0.0.1'
 
-If set, the nameserver will return this address rather than bypassing the local network interface hardware.
+If set, the nameserver will return this address rather than the standard loopback address.
+
+=head2 debug
+
+    my $adfilter = App::DNS::Adblock->new( { debug => '1' } ); #defaults to '0'
+
+The debug option logs actions to stdout and can be set from 1-3 with increasing output: the module will 
+feedback (1) adfilter.pm logging, (2) nameserver logging, and (3) resolver logging. 
 
 =head1 CAVEATS
 

@@ -1,6 +1,9 @@
 Revision history for Perl module App::DNS::Adblock
 
 {{$NEXT}}
+    - configurable loopback address - feature request 90614
+
+0.004 Mon Dec 30 2013
     - initial release
 
 0.003 Fri Sep 14 2012
