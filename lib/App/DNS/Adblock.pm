@@ -201,22 +201,22 @@ sub read_config {
 	my ( $self ) = shift;
         my $cache = ();
 
-	$self->{forwarders} = ([ $self->parse_resolv_conf() ]);		              # /etc/resolv.conf
+	$self->{forwarders} = ([ $self->parse_resolv_conf() ]);                            # /etc/resolv.conf
 
         if ($self->{adblock_stack}) {
         	for ( @{ $self->{adblock_stack} } ) {
- 	                $cache = { $self->load_adblock_filter($_) };                  # adblock plus hosts
+ 	                $cache = { $self->load_adblock_filter($_) };                       # adblock plus hosts
                         %{ $self->{adfilter} } = $self->{adfilter} ? ( %{ $self->{adfilter} }, %{ $cache } ) 
                                          : %{ $cache };
 	        }
 	}
         if ($self->{blacklist}) {
- 	        $cache = { $self->parse_single_col_hosts($self->{blacklist}->{path}) }; # local, custom hosts
+ 	        $cache = { $self->parse_single_col_hosts($self->{blacklist}->{path}) };    # local, custom hosts
                 %{ $self->{adfilter} } = $self->{adfilter} ? ( %{ $self->{adfilter} }, %{ $cache } ) 
                                          : %{ $cache };
  	}
         if ($self->{whitelist}) {
- 	        $cache = { $self->parse_single_col_hosts($self->{whitelist}->{path}) }; # remove entries
+ 	        $cache = { $self->parse_single_col_hosts($self->{whitelist}->{path}) };    # remove entries
                 for ( keys %{ $cache } ) { delete ( $self->{adfilter}->{$_} ) };
  	}
 
@@ -457,9 +457,9 @@ to a single column list of hosts. These hosts will be removed from the filter.
 The IP address to bind to. If not defined, the server attempts binding to the local ip.
 The default port is 53.
 
-=head2 nameservers, nameservers_port
+=head2 forwarders, forwarders_port
 
-    my $adfilter = App::DNS::Adblock->new( { nameservers => [ $proxy1, $proxy2 ], nameservers_port => $port } );
+    my $adfilter = App::DNS::Adblock->new( { forwarders => [ $proxy1, $proxy2 ], forwarders_port => $port } );
 
 An arrayref of one or more nameservers to forward any DNS queries to. Defaults to nameservers 
 listed in /etc/resolv.conf. The default port is 53.

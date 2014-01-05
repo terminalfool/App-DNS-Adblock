@@ -12,7 +12,7 @@ $SIG{CHLD} = 'IGNORE';
 my $host = "127.0.0.1";
 my $port = int(rand(9999)) + 10000;
 
-my $adfilter = App::DNS::Adblock->new( { host => $host, port => $port } );
+my $adfilter = App::DNS::Adblock->new( { host => $host, port => $port, forwarders => [ '8.8.8.8', '8.8.4.4' ] } );
 
 my $pid = fork();
 
