@@ -59,9 +59,9 @@ $args->{adblock_stack}    = [
 			         refresh => 5,
 			       },
 			    ];
-#$args->{blacklist}	  = { path => '/var/named/blacklist' };
+#$args->{blacklist}	  = '/var/named/blacklist';
 
-#$args->{whitelist}	  = { path => '/var/named/whitelist' };
+#$args->{whitelist}	  = '/var/named/whitelist';
 
 App::DNS::Adblock->new( $args )->run();
 

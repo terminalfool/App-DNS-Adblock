@@ -211,12 +211,12 @@ sub read_config {
 	        }
 	}
         if ($self->{blacklist}) {
- 	        $cache = { $self->parse_single_col_hosts($self->{blacklist}->{path}) };    # local, custom hosts
+ 	        $cache = { $self->parse_single_col_hosts($self->{blacklist}) };    # local, custom hosts
                 %{ $self->{adfilter} } = $self->{adfilter} ? ( %{ $self->{adfilter} }, %{ $cache } ) 
                                          : %{ $cache };
  	}
         if ($self->{whitelist}) {
- 	        $cache = { $self->parse_single_col_hosts($self->{whitelist}->{path}) };    # remove entries
+ 	        $cache = { $self->parse_single_col_hosts($self->{whitelist}) };    # remove entries
                 for ( keys %{ $cache } ) { delete ( $self->{adfilter}->{$_} ) };
  	}
 
@@ -364,20 +364,16 @@ version 0.004
 
 =head1 DESCRIPTION
 
-This is a DNS ad filter for a local area network. Its function is to load 
-lists of ad domains and nullify DNS queries for those domains to a loopback 
-address. Any other DNS queries are proxied upstream, either to a specified 
+This is an ad filter for use in a local area network. Its function is to load 
+lists of ad domains and answer DNS queries for those domains with a loopback 
+address. Any other DNS queries are forwarded upstream, either to a specified 
 list of nameservers or to those listed in /etc/resolv.conf. 
 
 The module loads externally maintained lists of ad hosts intended for use 
 by the I<adblock plus> Firefox extension. Use of the lists focuses only on 
 third-party listings that define dedicated advertising and tracking hosts.
 
-A collection of lists is available at http://adblockplus.org/en/subscriptions. 
-The module will accept standard or abp:subscribe? urls. You can cut and paste 
-encoded links directly.
-
-A locally maintained blacklist/whitelist can also be loaded. In this case, host 
+A custom blacklist and/or whitelist can also be loaded. In this case, host 
 listings must conform to a one host per line format.
 
 Once running, local network dns queries can be addressed to the host's ip.
@@ -389,7 +385,7 @@ Once running, local network dns queries can be addressed to the host's ip.
     $adfilter->run();
 
 Without any parameters, the module will function simply as a proxy, forwarding all 
-requests upstream to nameservers defined in /etc/resolv.conf.
+requests upstream to predefined nameservers.
 
 =head1 ATTRIBUTES
 
@@ -418,37 +414,34 @@ a path string that defines where the module will write a local copy of
 the list; a refresh value that determines what age (in days) the local copy 
 may be before it is refreshed.
 
+A collection of lists is available at http://adblockplus.org/en/subscriptions. 
+The module will accept standard or abp:subscribe? urls. You can cut and paste 
+encoded links directly.
+
 =head2 blacklist
 
     my $adfilter = App::DNS::Adblock->new( {
 
-        blacklist => {
-            path => '/var/named/blacklist',  #path to secondary hosts
-        },
+        blacklist => '/var/named/blacklist',  #path to secondary hosts
     } );
 
-The blacklist hashref contains only a path string that defines where the module will 
-access a local list of ad hosts. The host list must conform to a one host 
-per line format:
+A path string that defines where the module will access a local list of ad hosts. 
+A single column is the only acceptable format:
 
     # ad nauseam
     googlesyndication.com
     facebook.com
     twitter.com
     ...
-    adinfinitum.com
 
 =head2 whitelist
 
     my $adfilter = App::DNS::Adblock->new( {
 
-        whitelist => {
-            path => '/var/named/whitelist',  #path to whitelist
-        },
+        whitelist => '/var/named/whitelist',  #path to exclusions
     } );
 
-The whitelist hashref, like the blacklist hashref, contains only a path parameter 
-to a single column list of hosts. These hosts will be removed from the filter.
+A path string to a single column list of hosts. These hosts will be removed from the filter.
 
 =head2 host, port
 
@@ -459,7 +452,7 @@ The default port is 53.
 
 =head2 forwarders, forwarders_port
 
-    my $adfilter = App::DNS::Adblock->new( { forwarders => [ $proxy1, $proxy2 ], forwarders_port => $port } );
+    my $adfilter = App::DNS::Adblock->new( { forwarders => [ nameserver, ], forwarders_port => $port } );
 
 An arrayref of one or more nameservers to forward any DNS queries to. Defaults to nameservers 
 listed in /etc/resolv.conf. The default port is 53. Windows machines should define a forwarder to avoid 
