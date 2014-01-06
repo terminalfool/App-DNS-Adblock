@@ -358,10 +358,6 @@ sub dump_adfilter {
 
 App::DNS::Adblock - A DNS based implementation of Adblock Plus
 
-=head1 VERSION
-
-version 0.004
-
 =head1 DESCRIPTION
 
 This is an ad filter for use in a local area network. Its function is to load 
