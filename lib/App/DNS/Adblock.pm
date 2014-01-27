@@ -3,7 +3,7 @@ package App::DNS::Adblock;
 use strict;
 use warnings;
 
-use Net::DNS;
+use Net::DNS 0.74;
 use Net::DNS::Nameserver;
 use Sys::HostIP;
 use Capture::Tiny qw(capture);
