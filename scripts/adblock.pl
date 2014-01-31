@@ -90,11 +90,9 @@ This script implements a dynamic DNS proxy server for the purpose of blocking ad
 
 =head1 CAVEATS
 
-Installation places this script in /usr/local/bin/
-
 Though the module permits the use of as many lists as you like, it should be sufficient to use one or two lists, accept the defaults and run it in the background:
 
-     sudo perl /usr/local/bin/adblock.pl -bg -setdns
+     sudo perl adblock.pl -bg -setdns
      # you must manually kill this process
 
 Edit the adblock_stack, blacklist and whitelist args to your liking.

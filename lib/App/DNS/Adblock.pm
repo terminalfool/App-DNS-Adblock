@@ -484,7 +484,7 @@ David Watson <dwatson@cpan.org>
 
 =head1 SEE ALSO
 
-Installed script: /usr/local/bin/adblock.pl (scripts/adblock.pl in the distribution)
+scripts/ in the distribution
 
 This module is essentially a lightweight, non-Moose version of Net::DNS::Dynamic::Adfilter
 
