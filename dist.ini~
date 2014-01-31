@@ -1,0 +1,32 @@
+name             = App-DNS-Adblock
+version          = 0.011
+author           = David Watson <dwatson@cpan.org>
+license          = Perl_5
+copyright_holder = David Watson
+
+[GatherDir]
+[MetaJSON]
+[MetaYAML]
+[ReadmeFromPod]
+[MakeMaker]
+[ExecDir]
+dir = scripts
+[Manifest]
+[PruneCruft]
+[PruneFiles]
+match = dist.ini
+match = README.md
+match = .*~$
+match = \.DS_Store$
+[License]
+[PkgVersion]
+[PodVersion]
+[NextRelease]
+format = %v %{EEE MMM d hh:mm:ss V yyyy}d
+[PodSyntaxTests]
+[PodCoverageTests]
+[AutoPrereqs]
+[@Git]
+[GitHub::Meta]
+[Test::Kwalitee]
+[MinimumPerl]
