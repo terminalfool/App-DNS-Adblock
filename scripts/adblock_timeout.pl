@@ -29,7 +29,7 @@ try {
         local $SIG{ALRM} = sub { $adfilter->restore_local_dns if $adfilter->{setdns};
 				 die "alarm\n"
 				   };
-        alarm 604800; # 7 days
+        alarm 604800; # 7 day timeout
         main();
         alarm 0;
 }
@@ -47,11 +47,11 @@ sub main {
 
 =head1 NAME
 
-timeout.pl - Sample script using App::DNS::Adblock
+adblock_timeout.pl - Sample script using App::DNS::Adblock
 
 =head1 SYNOPSIS
 
-sudo nohup perl timeout.pl &
+sudo nohup perl adblock_timeout.pl &
 
 =head1 DESCRIPTION
 
@@ -59,19 +59,19 @@ This script implements a DNS-based ad blocker. Intended for use as a persistent 
 
 =head1 CAVEATS
 
-On darwin, use launchctl to handle persistence:
+Tested on darwin only, using launchctl to handle persistence.
 
-app.dns.adblock.plist:
+app.dns.adblock_timeout.plist:
 
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
    <key>Label</key>
-<string>app.dns.adblock</string>
+<string>app.dns.adblock_timeout</string>
 <key>ProgramArguments</key>
 <array>
-  <string>/usr/local/bin/adblock</string>
+  <string>/usr/local/bin/adblock_timeout.pl</string>
 </array>
         <key>KeepAlive</key>
         <true/>
