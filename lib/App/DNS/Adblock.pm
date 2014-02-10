@@ -1,6 +1,6 @@
 package App::DNS::Adblock;
 
-#use Object::InsideOut;
+use Class::InsideOut qw( register public );
 
 use strict;
 use warnings;
@@ -18,10 +18,7 @@ use Carp;
 
 #use Data::Dumper;
 
-#sub init :Init {
-#        my ($self, $args) = @_;
-#        $self->set(\@data, $args->{'INPUT'});
-#}
+property adfilter => my %adfilter, { privacy => "public" };
 
 sub new {
 	my ( $class, $self ) = @_;
