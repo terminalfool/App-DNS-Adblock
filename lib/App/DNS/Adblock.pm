@@ -1,9 +1,10 @@
 package App::DNS::Adblock;
 
+#use Object::InsideOut;
+
 use strict;
 use warnings;
 
-use Object::InsideOut;
 use Net::DNS 0.74;
 use Net::DNS::Nameserver;
 use Sys::HostIP;
@@ -17,90 +18,10 @@ use Carp;
 
 #use Data::Dumper;
 
-
-
-
- package My::Class; {
-     use Object::InsideOut;
-
-     # Numeric field
-     #   With combined get+set accessor
-     my @data
-            :Field
-            :Type(numeric)
-            :Accessor(data);
-
-     # Takes 'INPUT' (or 'input', etc.) as a mandatory parameter to ->new()
-     my %init_args :InitArgs = (
-         'INPUT' => {
-             'Regex'     => qr/^input$/i,
-             'Mandatory' => 1,
-             'Type'      => 'numeric',
-         },
-     );
-
-     # Handle class-specific args as part of ->new()
-     sub init :Init
-     {
-         my ($self, $args) = @_;
-
-         # Put 'input' parameter into 'data' field
-         $self->set(\@data, $args->{'INPUT'});
-     }
- }
-
- package My::Class::Sub; {
-     use Object::InsideOut qw(My::Class);
-
-     # List field
-     #   With standard 'get_X' and 'set_X' accessors
-     #   Takes 'INFO' as an optional list parameter to ->new()
-     #     Value automatically added to @info array
-     #     Defaults to [ 'empty' ]
-     my @info
-            :Field
-            :Type(list)
-            :Standard(info)
-            :Arg('Name' => 'INFO', 'Default' => 'empty');
- }
-
- package Foo; {
-     use Object::InsideOut;
-
-     # Field containing My::Class objects
-     #   With combined accessor
-     #   Plus automatic parameter processing on object creation
-     my @foo
-            :Field
-            :Type(My::Class)
-            :All(foo);
- }
-
- package main;
-
- my $obj = My::Class::Sub->new('Input' => 69);
- my $info = $obj->get_info();               # [ 'empty' ]
- my $data = $obj->data();                   # 69
- $obj->data(42);
- $data = $obj->data();                      # 42
-
- $obj = My::Class::Sub->new('INFO' => 'help', 'INPUT' => 86);
- $data = $obj->data();                      # 86
- $info = $obj->get_info();                  # [ 'help' ]
- $obj->set_info(qw(foo bar baz));
- $info = $obj->get_info();                  # [ 'foo', 'bar', 'baz' ]
-
- my $foo_obj = Foo->new('foo' => $obj);
- $foo_obj->foo()->data();                   # 86
-
-
-
-
-
-sub init :Init {
-        my ($self, $args) = @_;
-        $self->set(\@data, $args->{'INPUT'});
-}
+#sub init :Init {
+#        my ($self, $args) = @_;
+#        $self->set(\@data, $args->{'INPUT'});
+#}
 
 sub new {
 	my ( $class, $self ) = @_;

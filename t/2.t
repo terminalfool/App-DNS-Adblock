@@ -1,7 +1,6 @@
 use Data::Dumper;
 
-use Test;
-BEGIN { plan tests => 1 };
+use Test::More tests => 6;
 
 use lib "../lib/";
 use App::DNS::Adblock;
@@ -9,10 +8,17 @@ use Net::DNS::Resolver;
 
 $SIG{CHLD} = 'IGNORE';
 
-my $host = "127.0.0.1";
+my $host = '127.0.0.1';
 my $port = int(rand(9999)) + 10000;
+my $forwarders = [ '8.8.8.8', '8.8.4.4' ];
 
-my $adfilter = App::DNS::Adblock->new( { host => $host, port => $port, forwarders => [ '8.8.8.8', '8.8.4.4' ] } );
+my $adfilter = App::DNS::Adblock->new( { host => $host, port => $port, forwarders => $forwarders } );
+
+ok( defined $adfilter );
+ok( $adfilter->isa('App::DNS::Adblock'));
+ok( $adfilter->{host} eq $host );
+ok( $adfilter->{port} == $port );
+ok( $adfilter->{forwarders} ~~ $forwarders );
 
 my $pid = fork();
 
