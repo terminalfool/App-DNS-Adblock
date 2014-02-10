@@ -5,8 +5,10 @@ use warnings;
 
 use App::DNS::Adblock;
 use Try::Tiny;
+use Hash::Util::FieldHash 'fieldhash';
+fieldhash my %adfilter;
 
-my $adfilter =  App::DNS::Adblock->new({
+$adfilter =  App::DNS::Adblock->new({
 
 					adblock_stack => [
 							  { url => 'http://pgl.yoyo.org/adservers/serverlist.php?hostformat=adblockplus&showintro=0&startdate[day]=&startdate[month]=&startdate[year]=&mimetype=plaintext',
