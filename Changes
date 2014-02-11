@@ -1,6 +1,9 @@
 Revision history for Perl module App::DNS::Adblock
 
 {{$NEXT}}
+    - fix timeout, test scripts
+
+0.011 Fri Feb 7 10:21:07 EST 2014
     - require min. versions of Net::DNS and Perl
 
 0.01 Mon Jan 6 12:28:01 EST 2014

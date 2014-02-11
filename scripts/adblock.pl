@@ -67,7 +67,7 @@ App::DNS::Adblock->new( $args )->run();
 
 =head1 NAME
 
-adblock.pl - Sample script using App::DNS::Adblock
+adblock.pl - command line stub
 
 =head1 SYNOPSIS
 

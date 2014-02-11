@@ -1,7 +1,5 @@
 package App::DNS::Adblock;
 
-use Class::InsideOut qw( register public );
-
 use strict;
 use warnings;
 
@@ -17,8 +15,6 @@ use POSIX qw( strftime );
 use Carp;
 
 #use Data::Dumper;
-
-property adfilter => my %adfilter, { privacy => "public" };
 
 sub new {
 	my ( $class, $self ) = @_;
