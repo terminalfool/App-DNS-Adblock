@@ -6,6 +6,9 @@ use warnings;
 use App::DNS::Adblock;
 use Try::Tiny;
 
+my $timeout = 1;  # 1 day timeout
+$timeout *= 86400;
+
 my $adfilter =  App::DNS::Adblock->new({
 					adblock_stack => [
 							  { url => 'http://pgl.yoyo.org/adservers/serverlist.php?hostformat=adblockplus&showintro=0&startdate[day]=&startdate[month]=&startdate[year]=&mimetype=plaintext',
@@ -17,20 +20,20 @@ my $adfilter =  App::DNS::Adblock->new({
 							    refresh => 5,
 							    },
 							  ],
-#					forwarders => [ "8.8.8.8", "8.8.4.4" ],
-					blacklist => '/var/named/blacklist',
-					whitelist => '/var/named/whitelist',
+					forwarders => [ "8.8.8.8", "8.8.4.4" ],
+#					blacklist => '/var/named/blacklist',
+#					whitelist => '/var/named/whitelist',
 #					debug => 1,
 					setdns => 1,
-});
+				       }
+);
 
 while (1) {
   try {
         local $SIG{ALRM} = sub { $adfilter->restore_local_dns if $adfilter->{setdns};
 				 die "alarm\n"
 				   };
-#        alarm 604800; # 7 day timeout
-        alarm 10;
+        alarm $timeout;
         main();
         alarm 0;
       }
@@ -40,8 +43,6 @@ while (1) {
         print "restarted\n";
       };
 }
-
-print "done\n";
 
 sub main {
   $adfilter->run();
@@ -53,11 +54,13 @@ adblock_timeout.pl - data refresh stub
 
 =head1 SYNOPSIS
 
-sudo perl adblock_timeout.pl &
+    sudo perl adblock_timeout.pl
 
 =head1 DESCRIPTION
 
-This script implements a DNS-based ad blocker. Execution is wrapped in a timeout function for the purpose of refreshing the adblock stack. 
+This script implements a DNS-based ad blocker. Execution is wrapped in a timeout function for the purpose of refreshing the adblock stack.
+
+Edit the timeout, adblock_stack, blacklist and whitelist parameters to your liking.
 
 =head1 CAVEATS
 

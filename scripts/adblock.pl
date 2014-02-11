@@ -86,7 +86,7 @@ adblock.pl [options]
 
 =head1 DESCRIPTION
 
-This script implements a dynamic DNS proxy server for the purpose of blocking advertisements. 
+This script implements a DNS-based ad blocker.
 
 =head1 CAVEATS
 
