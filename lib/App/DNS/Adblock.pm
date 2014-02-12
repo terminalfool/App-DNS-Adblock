@@ -356,7 +356,7 @@ sub dump_adfilter {
 
 =head1 NAME
 
-App::DNS::Adblock - DNS Ad Filter Lite
+App::DNS::Adblock - A lighter DNS Ad Filter
 
 =head1 DESCRIPTION
 
