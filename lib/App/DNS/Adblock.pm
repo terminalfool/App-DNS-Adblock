@@ -17,7 +17,8 @@ use Carp;
 #use Data::Dumper;
 
 sub new {
-	my ( $class, $self ) = @_;
+	my ( $class, %self ) = @_;
+	my $self = { %self };
 	bless $self, $class;
 
 	$self->read_config();
@@ -376,7 +377,7 @@ Once running, local network dns queries can be addressed to the host's ip.
 
 =head1 SYNOPSIS
 
-    my $adfilter = App::DNS::Adblock->new( { } );
+    my $adfilter = App::DNS::Adblock->new();
 
     $adfilter->run();
 
@@ -387,7 +388,7 @@ requests upstream to predefined nameservers.
 
 =head2 adblock_stack
 
-    my $adfilter = App::DNS::Adblock->new( {
+    my $adfilter = App::DNS::Adblock->new(
 
         adblock_stack => [
             {
@@ -402,7 +403,7 @@ requests upstream to predefined nameservers.
             refresh => 5,
             },
         ],
-    } );
+    );
 
 The adblock_stack arrayref encloses one or more hashrefs composed of three 
 parameters: a url that returns a list of ad hosts in adblock plus format; 
@@ -416,10 +417,9 @@ encoded links directly.
 
 =head2 blacklist
 
-    my $adfilter = App::DNS::Adblock->new( {
-
+    my $adfilter = App::DNS::Adblock->new(
         blacklist => '/var/named/blacklist',  #path to secondary hosts
-    } );
+    );
 
 A path string that defines where the module will access a local list of ad hosts. 
 A single column is the only acceptable format:
@@ -432,23 +432,23 @@ A single column is the only acceptable format:
 
 =head2 whitelist
 
-    my $adfilter = App::DNS::Adblock->new( {
+    my $adfilter = App::DNS::Adblock->new(
 
         whitelist => '/var/named/whitelist',  #path to exclusions
-    } );
+    );
 
 A path string to a single column list of hosts. These hosts will be removed from the filter.
 
 =head2 host, port
 
-    my $adfilter = App::DNS::Adblock->new( { host => $host, port => $port } );
+    my $adfilter = App::DNS::Adblock->new( host => $host, port => $port );
 
 The IP address to bind to. If not defined, the server attempts binding to the local ip.
 The default port is 53.
 
 =head2 forwarders, forwarders_port
 
-    my $adfilter = App::DNS::Adblock->new( { forwarders => [ nameserver, ], forwarders_port => $port } );
+    my $adfilter = App::DNS::Adblock->new( forwarders => [ nameserver, ], forwarders_port => $port );
 
 An arrayref of one or more nameservers to forward any DNS queries to. Defaults to nameservers 
 listed in /etc/resolv.conf. The default port is 53. Windows machines should define a forwarder to avoid 
@@ -456,20 +456,20 @@ the default behavior.
 
 =head2 setdns
 
-    my $adfilter = App::DNS::Adblock->new( { setdns  => '1' } ); #defaults to '0'
+    my $adfilter = App::DNS::Adblock->new( setdns  => '1' ); #defaults to '0'
 
 If set, the module attempts to set local dns settings to the host's ip. This may or may not work
 if there are multiple active interfaces. You may need to manually adjust your local dns settings.
 
 =head2 loopback
 
-    my $adfilter = App::DNS::Adblock->new( { loopback  => '127.255.255.254' } ); #defaults to '127.0.0.1'
+    my $adfilter = App::DNS::Adblock->new( loopback  => '127.255.255.254' ); #defaults to '127.0.0.1'
 
 If set, the nameserver will return this address rather than the standard loopback address.
 
 =head2 debug
 
-    my $adfilter = App::DNS::Adblock->new( { debug => '1' } ); #defaults to '0'
+    my $adfilter = App::DNS::Adblock->new( debug => '1' ); #defaults to '0'
 
 The debug option logs actions to stdout and can be set from 1-3 with increasing output: the module will 
 feedback (1) adfilter.pm logging, (2) nameserver logging, and (3) resolver logging. 
