@@ -8,7 +8,7 @@ use App::DNS::Adblock;
 use Try::Tiny;
 
 my $timeout = 1;  # 1 day timeout
-$timeout *= 5;
+$timeout *= 10;
 
 my $adfilter =  App::DNS::Adblock->new(
 					adblock_stack => [

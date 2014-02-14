@@ -17,14 +17,14 @@ use Carp;
 use Data::Dumper;
 
 use Storable qw(freeze thaw);
-my $serialized;
+my $attributes;
 
 sub new {
 	my ( $class, %self ) = @_;
 	my $self = { %self };
 	bless $self, $class;
 
-	$serialized = freeze($self);
+	$attributes = freeze($self);
 	$self->read_config();
 
 	my $host = Sys::HostIP->new;
@@ -66,7 +66,7 @@ sub run {
 	$SIG{QUIT} = sub { $self->signal_handler(@_) };
 	$SIG{TERM} = sub { $self->signal_handler(@_) };
 	$SIG{INT}  = sub { $self->signal_handler(@_) };
-	$SIG{HUP}  = sub { $self->read_config() };
+	$SIG{HUP}  = sub { $self->read_config($attributes) };
 
 	$self->log("nameserver accessible locally @ $self->{host}", 1);
 
@@ -203,7 +203,8 @@ sub log {
 }
 
 sub read_config {
-	my $self = thaw($serialized);
+	my $self = shift;
+	
         my $cache = ();
 
 	$self->{forwarders} = ([ $self->parse_resolv_conf() ]);                            # /etc/resolv.conf
