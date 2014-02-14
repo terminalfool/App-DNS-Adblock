@@ -8,7 +8,7 @@ use App::DNS::Adblock;
 use Try::Tiny;
 
 my $timeout = 1;  # 1 day timeout
-$timeout *= 86400;
+$timeout *= 5;
 
 my $adfilter =  App::DNS::Adblock->new(
 					adblock_stack => [
@@ -30,7 +30,7 @@ my $adfilter =  App::DNS::Adblock->new(
 
 while (1) {
   try {
-        local $SIG{ALRM} = sub { $adfilter->restore_local_dns if $adfilter->{setdns};
+        local $SIG{ALRM} = sub {# $adfilter->restore_local_dns if $adfilter->{setdns};
 				 die "alarm\n"
 				   };
         alarm $timeout;
@@ -40,6 +40,7 @@ while (1) {
 
   catch {
         die $_ unless $_ eq "alarm\n";
+	kill HUP => $$;
         print "restarted\n";
       };
 }

@@ -14,13 +14,17 @@ use Mozilla::CA;
 use POSIX qw( strftime );
 use Carp;
 
-#use Data::Dumper;
+use Data::Dumper;
+
+use Storable qw(freeze thaw);
+my $serialized;
 
 sub new {
 	my ( $class, %self ) = @_;
 	my $self = { %self };
 	bless $self, $class;
 
+	$serialized = freeze($self);
 	$self->read_config();
 
 	my $host = Sys::HostIP->new;
@@ -199,7 +203,7 @@ sub log {
 }
 
 sub read_config {
-	my ( $self ) = shift;
+	my $self = thaw($serialized);
         my $cache = ();
 
 	$self->{forwarders} = ([ $self->parse_resolv_conf() ]);                            # /etc/resolv.conf
