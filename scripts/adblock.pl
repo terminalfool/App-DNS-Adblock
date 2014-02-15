@@ -59,7 +59,7 @@ adblock.pl - command line stub
 
 =head1 DESCRIPTION
 
-This script implements a DNS-based ad blocker. Execution is wrapped in a timeout function for the purpose of refreshing the adblock stack.
+This script implements a DNS-based ad blocker. Execution is wrapped in a timeout function for the purpose of refreshing ad host listings..
 
 =head1 CAVEATS
 
