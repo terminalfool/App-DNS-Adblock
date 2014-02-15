@@ -17,6 +17,7 @@ use Carp;
 use Data::Dumper;
 
 use Storable qw(freeze thaw);
+
 my $attributes;
 
 sub new {
@@ -66,7 +67,7 @@ sub run {
 	$SIG{QUIT} = sub { $self->signal_handler(@_) };
 	$SIG{TERM} = sub { $self->signal_handler(@_) };
 	$SIG{INT}  = sub { $self->signal_handler(@_) };
-	$SIG{HUP}  = sub { $self->read_config($attributes) };
+	$SIG{HUP}  = sub { $self->read_config() };
 
 	$self->log("nameserver accessible locally @ $self->{host}", 1);
 
@@ -204,7 +205,9 @@ sub log {
 
 sub read_config {
 	my $self = shift;
-	
+	my $attributes = thaw($attributes);
+	for ( keys %{$attributes} ) { $self->{$_} = $attributes->{$_} };                   # HUP restore
+
         my $cache = ();
 
 	$self->{forwarders} = ([ $self->parse_resolv_conf() ]);                            # /etc/resolv.conf

@@ -8,7 +8,7 @@ use App::DNS::Adblock;
 use Try::Tiny;
 
 my $timeout = 1;  # 1 day timeout
-$timeout *= 10;
+$timeout *= 86400;
 
 my $adfilter =  App::DNS::Adblock->new(
 					adblock_stack => [
@@ -30,7 +30,7 @@ my $adfilter =  App::DNS::Adblock->new(
 
 while (1) {
   try {
-        local $SIG{ALRM} = sub {# $adfilter->restore_local_dns if $adfilter->{setdns};
+        local $SIG{ALRM} = sub { $adfilter->restore_local_dns if $adfilter->{setdns};
 				 die "alarm\n"
 				   };
         alarm $timeout;
@@ -60,8 +60,6 @@ adblock.pl - command line stub
 =head1 DESCRIPTION
 
 This script implements a DNS-based ad blocker. Execution is wrapped in a timeout function for the purpose of refreshing the adblock stack.
-
-Edit the timeout, adblock_stack, blacklist and whitelist parameters to your liking.
 
 =head1 CAVEATS
 
