@@ -1,6 +1,12 @@
 use Data::Dumper;
 
-use Test::More tests => 6;
+use Test::More;
+if( $^O eq 'Win32' ) {
+    plan tests => 5;       #fork impossible
+}
+else {
+    plan tests => 6;
+}
 
 use lib "../lib/";
 use App::DNS::Adblock;
@@ -20,12 +26,11 @@ ok( $adfilter->{host} eq $host );
 ok( $adfilter->{port} == $port );
 ok( $adfilter->{forwarders} ~~ $forwarders );
 
-my $pid = fork() unless $^O =~ /32/;
+my $pid = fork();
 
 unless ($pid) {
-
-	ok( $adfilter->run() );
-	exit;
+    $adfilter->run();
+    exit;
 }
 
 my $res = Net::DNS::Resolver->new(
