@@ -1,7 +1,7 @@
 use Data::Dumper;
 
 use Test::More;
-if( $^O eq 'Win32' ) {
+if( $^O =~ /win32/i ) {
     plan tests => 5;       #fork impossible
 }
 else {
