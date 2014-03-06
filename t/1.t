@@ -1,16 +1,9 @@
 use Data::Dumper;
-
 use Test::More;
-if( $^O =~ /win32/i ) {
-    plan tests => 5;       #fork impossible
-}
-else {
-    plan tests => 6;
-}
+use Net::DNS::Resolver;
 
 use lib "../lib/";
 use App::DNS::Adblock;
-use Net::DNS::Resolver;
 
 $SIG{CHLD} = 'IGNORE';
 
@@ -25,6 +18,11 @@ ok( $adfilter->isa('App::DNS::Adblock'));
 ok( $adfilter->{host} eq $host );
 ok( $adfilter->{port} == $port );
 ok( $adfilter->{forwarders} ~~ $forwarders );
+
+if ($^O =~ /win32/i) {
+  done_testing();
+  exit;
+}
 
 my $pid = fork();
 
@@ -46,3 +44,4 @@ ok($search->isa('Net::DNS::Packet'));
 
 kill 3, $pid;
 
+done_testing();
